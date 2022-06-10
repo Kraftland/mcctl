@@ -25,7 +25,7 @@ version=1.19 serverPath=/mnt/main/Cache/Paper bash Update.sh -spigot -sac -geyse
 | sac | Update sac (Beta support) |
 | floodgate | Update floodgate. |
 | geyser | Update geyser. |
-| systemupdate | Fully update your system. (Run under root!) |
+| systemupdate | Fully update your system. (Run as root!) |
 | unsafe | Disable default protecting. |
 
 # Environment Variables
