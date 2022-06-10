@@ -1,7 +1,7 @@
 #!/bin/bash
 ######User Settings Start######
-export version=1.19
-export serverPath=/mnt/main/Cache/Paper
+export version=
+export serverPath=
 ######User Settings End######
 
 ######Function Start######
@@ -76,7 +76,7 @@ function versionCompare(){
 }
 #integrityProtect
 function integrityProtect(){
-    if [[ $@ =~ "nocheck" ]]; then
+    if [[ $@ =~ "unsafe" ]]; then
         echo "Warning! Default protection disabled. USE AT YOUR OWN RISK!"
         return 0
     else
@@ -184,9 +184,26 @@ function buildPaper(){
     fi
     clean
 }
+
+#32-bit Warning
+function checkBit(){
+    getconf LONG_BIT
+    return $?
+    if [ $? =64 ]; then
+        echo "Running on 64-bit system."
+    else
+        if [[ $@ =~ "unsafe" ]]; then
+            echo "Warning at `date`, running on 32-bit system may encounter unexpected problems."
+        else
+            echo "32-bit system detected, script is terminating..."
+            exit 1
+        fi
+    fi
+}
 ######Function End######
 
 echo "Hello! `whoami` at `date`"
+checkBit
 echo "Reading settings"
 clean
 checkConfig
@@ -224,6 +241,7 @@ if [[ $@ =~ "floodgate" ]]; then
     update *.jar
     clean
 fi
+
 if [[ $@ =~ "sac" ]]; then
     echo "Warning! Beta support for SoaromaSAC"
     isPlugin=true
