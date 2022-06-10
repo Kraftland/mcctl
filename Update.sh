@@ -1,8 +1,4 @@
 #!/bin/bash
-######User Settings Start######
-export version=
-export serverPath=
-######User Settings End######
 
 ######Function Start######
 #Build Spigot
@@ -83,7 +79,7 @@ function integrityProtect(){
         echo "Verifing ${checkFile}"
         if [ ${isPlugin} = false ]; then
             checkFile=Paper-latest.jar
-            wget $url
+            wget $url >> /dev/null
             mv paper-*.jar Paper-latest.jar.check
             diff -q Paper-latest.jar.check Paper-latest.jar
             return $?
@@ -106,11 +102,11 @@ function redownload(){
     clean
     if [ ${isPlugin} = false ]; then
         checkFile=Paper-latest.jar
-        wget $url
+        wget $url >> /dev/null
         mv paper-*.jar Paper-latest.jar
         integrityProtect
     else
-        wget $url
+        wget $url >> /dev/null
         integrityProtect
     fi
 }
@@ -129,20 +125,20 @@ function pluginUpdate(){
     else
         echo "Sorry, but we don't have your plugin's download url. Please wait for support~"
     fi
-
-    wget $url
-    export isPlugin=true
+    echo "Downloading ${pluginName}"
+    wget $url >> /dev/null
+    isPlugin=true
     #export checkFile="${pluginName}"
 }
 #systemUpdate
 function systemUpdate(){
-    if [ `whoami` = root ]; then
-        detectPackageManager
-        if [[ $@ =~ "systemupdate" ]]; then
+    if [[ $@ =~ "systemupdate" ]]; then
+        if [ `whoami` = root ]; then
+            detectPackageManager
             if [ $? = apt ]; then
                 apt -y full-upgrade
             elif [ $? = dnf ]; then
-                dnf -y dnf update
+                dnf -y update
             elif [ $? = pacman ]; then
                 pacman --noconfirm -Syyu
             else
@@ -155,9 +151,9 @@ function systemUpdate(){
                     echo "Skipping"
                 fi
             fi
+        else
+            echo "System Update Failed! You are running under `whoami`"
         fi
-    else
-        echo "System Update Failed! You are running under `whoami`"
     fi
 }
 
