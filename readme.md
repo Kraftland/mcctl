@@ -7,7 +7,7 @@ minecraft-server-updater is a script that can automatically update your minecraf
 # Usage
 
 ```bash
-[Environment Variables] bash /Path/to/your/script.sh -[options]
+[Environment Variables] bash /Path/to/your/script.sh -[Flags]
 ```
 
 Examples:
@@ -16,7 +16,7 @@ Examples:
 version=1.19 serverPath=/mnt/main/Cache/Paper bash Update.sh -spigot -sac -geyser -floodgate
 ```
 
-# Options
+# Flags
 
 | Options | Effects |
 | --- | --- |
