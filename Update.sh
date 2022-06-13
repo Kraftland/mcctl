@@ -154,6 +154,7 @@ function pluginUpdate(){
 #systemUpdate
 function systemUpdate(){
     if [[ $@ =~ "systemupdate" ]]; then
+        echo "Notice: Script will try to do a full system update"
         if [ `whoami` = root ]; then
             detectPackageManager
             if [ $? = apt ]; then
@@ -285,7 +286,6 @@ function main(){
     ######System Update Start######
 
     ######System Update End######
-    echo "Notice: Script will try to do a full system update"
     systemUpdate
     ######Clean Environment Variables Start######
     unset version
