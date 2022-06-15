@@ -1,7 +1,7 @@
 #!/bin/bash
 ######User Settings Start######
-export version=1.19
-export serverPath=/mnt/main/Cache/Paper
+#export version=
+#export serverPath=
 ######User Settings End######
 
 ######Function Start######
