@@ -27,6 +27,7 @@ version=1.19 serverPath=/mnt/main/Cache/Paper bash Update.sh -spigot -sac -geyse
 | geyser | Update geyser. |
 | systemupdate | Fully update your system. (Run as root!) |
 | unsafe | Disable default protecting. |
+| outtolog | Redirect output to several log files |
 
 # Environment Variables
 
