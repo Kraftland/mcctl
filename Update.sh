@@ -1,28 +1,17 @@
 #!/bin/bash
 ######User Settings Start######
-#export version=
-#export serverPath=
+export version=1.19
+export serverPath=/mnt/main/Cache/Paper
 ######User Settings End######
 
 ######Function Start######
-#verboseOut
-function verbose(){
-    if [[ $@ =~ "verbose" ]]; then
-        verbose=""
-    else
-        verbose=" 2>> /dev/null"
-    fi
-}
-
 #Build Spigot
 function buildSpigot(){
     url="https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
     checkFile=BuildTools.jar
     echo "Downloading BuildTools for Spigot..."
-    wget ${url} >/dev/null
-    isPlugin=true
-    integrityProtect
-    java -jar $checkFile nogui --rev ${version}
+    wget ${url} >/dev/null 2>/dev/null
+    java -jar $checkFile nogui --rev ${version} >/dev/null
     rm -rf ${checkConfig}
     mv spigot-*.jar Spigot-latest.jar
     update Spigot-latest.jar
@@ -98,13 +87,13 @@ function integrityProtect(){
         echo "Verifing ${checkFile}"
         if [ ${isPlugin} = false ]; then
             checkFile=Paper-latest.jar
-            wget $url >/dev/null
+            wget $url >/dev/null 2>/dev/null
             mv paper-*.jar Paper-latest.jar.check
             diff -q Paper-latest.jar.check Paper-latest.jar
             return $?
         else
             mv $checkFile "${checkFile}.check"
-            wget $url >/dev/null
+            wget $url >/dev/null 2>/dev/null
             diff -q $checkFile "${checkFile}.check"
             return $?
         fi
@@ -121,11 +110,11 @@ function redownload(){
     clean
     if [ ${isPlugin} = false ]; then
         checkFile=Paper-latest.jar
-        wget $url >/dev/null
+        wget $url >/dev/null 2>/dev/null
         mv paper-*.jar Paper-latest.jar
         integrityProtect
     else
-        wget $url >/dev/null
+        wget $url >/dev/null 2>/dev/null
         integrityProtect
     fi
 }
@@ -148,7 +137,7 @@ function pluginUpdate(){
         echo "Sorry, but we don't have your plugin's download url. Please wait for support~"
     fi
     echo "Downloading ${pluginName}"
-    wget $url >/dev/null
+    wget $url >/dev/null 2>/dev/null
     isPlugin=true
 }
 #systemUpdate
@@ -188,7 +177,7 @@ function buildPaper(){
         export build=`expr ${build} - 1`
         echo "Testing build ${build}"
         url="https://papermc.io/api/v2/projects/paper/versions/${version}/builds/${build}/downloads/paper-${version}-${build}.jar"
-        wget $url >/dev/null
+        wget $url >/dev/null 2>/dev/null
     done
     echo "Downloaded build ${build}."
     if [ -f paper-*.jar ]; then
@@ -283,23 +272,16 @@ function main(){
     fi
     ######Plugin Update End######
 
-    ######System Update Start######
-
-    ######System Update End######
     systemUpdate
-    ######Clean Environment Variables Start######
-    unset version
-    unset serverPath
-    unset checkPath
-    unset isPlugin
-    unset packageManager
-    unset checkFile
     rm -rf ${serverPath}/plugins/BuildTools.jar
     clean
-    ######Clean Environment Variables End######
     echo "Job finished at `date`, have a nice day~"
     exit 0
 }
 
 ######Function End######
-main $@
+if [[ $@ =~ "outtolog" ]]; then
+    main $@ 1>> updater.log 2>>debug.log
+else
+    main $@
+fi
