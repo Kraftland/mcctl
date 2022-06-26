@@ -170,16 +170,20 @@ function systemUpdate(){
             sudo pacman --noconfirm -Syyu
         else
             unset packageManager
-            echo "Package Manager not found! Enter command to update or type 'skip' to skip"
-            read packageManager
-            if [ ! ${packageManager} = skip ]; then
-                if [[ ${packageManager} =~ 'sudo' ]]; then
-                    ${packageManager}
-                else
-                    ${packageManager}
-                fi
+            if [[ $@ =~ "unattended" ]];then
+                echo "unattended flag detected, skipping system update due to unknown package manager..."
             else
-                echo "Skipping"
+                echo "Package Manager not found! Enter command to update or type 'skip' to skip"
+                read packageManager
+                if [ ! ${packageManager} = skip ]; then
+                    if [[ ${packageManager} =~ 'sudo' ]]; then
+                        ${packageManager}
+                    else
+                        ${packageManager}
+                    fi
+                else
+                    echo "Skipping"
+                fi
             fi
         fi
     fi
@@ -285,8 +289,11 @@ function main(){
         update *.jar
     fi
     ######Plugin Update End######
-
-    systemUpdate
+    if [ `whoami` = 'root' ]; then
+        systemUpdate nosudo $@
+    else
+        systemUpdate $@
+    fi
     rm -rf ${serverPath}/plugins/BuildTools.jar
     clean
     echo "Job finished at `date`, have a nice day~"
@@ -294,7 +301,7 @@ function main(){
 }
 
 ######Function End######
-if [[ $@ =~ "outtolog" ]]; then
+if [[ $@ =~ "unattended" ]]; then
     main $@ 1>> updater.log 2>>debug.log
 else
     main $@
