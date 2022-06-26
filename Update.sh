@@ -225,7 +225,7 @@ function checkBit(){
         if [[ $@ =~ "unsafe" ]]; then
             echo "Warning at `date`, running on 32-bit system may encounter unexpected problems."
         else
-            echo "32-bit system detected, script is terminating..."
+            echo "32-bit system detected, script is stopping..."
             exit 2
         fi
     fi
