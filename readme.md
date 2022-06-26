@@ -2,7 +2,7 @@
 
 ---
 
-minecraft-server-updater is a script that can automatically update your minecraft server and its components.
+minecraft-server-updater is a bash script that can automatically update your Minecraft server's core ( Spigot and Paper, currently) and some plug-ins.
 
 # Usage
 
@@ -18,22 +18,22 @@ version=1.19 serverPath=/mnt/main/Cache/Paper bash Update.sh -spigot -sac -geyse
 
 # Flags
 
-| Options | Effects |
-| --- | --- |
-| spigot | Update spigot. |
-| paper | Update paper. |
-| sac | Update sac (Beta support) |
-| floodgate | Update floodgate. |
-| geyser | Update geyser. |
-| systemupdate | Fully update your system. (Run as root!) |
-| unsafe | Disable default protecting. |
-| outtolog | Redirect output to several log files |
+| Options      | Effects                                                                   |
+| ------------ | ------------------------------------------------------------------------- |
+| spigot       | Update spigot.                                                            |
+| paper        | Update paper.                                                             |
+| sac          | Update sac (Beta support)                                                 |
+| floodgate    | Update floodgate.                                                         |
+| geyser       | Update geyser.                                                            |
+| systemupdate | Fully update your system. ( Run with `sudo` when `-outtolog` activated! ) |
+| unsafe       | Disable default protecting.                                               |
+| outtolog     | Redirect output to several log files.                                     |
 
 # Environment Variables
 
 In order to achieve automated process, environment variables can be used.
 
-| Variables | Effects |
-| --- | --- |
-| version | Define your Minecraft server version. |
-| serverPath | Define your server path. |
+| Variables  | Effects                               |
+| ---------- | ------------------------------------- |
+| version    | Define your Minecraft server version. |
+| serverPath | Define your server path.              |
