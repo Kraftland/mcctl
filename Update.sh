@@ -1,8 +1,4 @@
 #!/bin/bash
-######User Settings Start######
-export version=1.19
-export serverPath=/mnt/main/Cache/Paper
-######User Settings End######
 
 ######Function Start######
 #Build Spigot
