@@ -10,7 +10,7 @@ function buildSpigot(){
     url="https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
     checkFile=BuildTools.jar
     echo "Downloading BuildTools for Spigot..."
-    wget ${url} >/dev/null 2>/dev/null
+    wget ${url} >/dev/null
     java -jar $checkFile nogui --rev ${version} >/dev/null
     rm -rf ${checkConfig}
     mv spigot-*.jar Spigot-latest.jar
@@ -20,13 +20,13 @@ function buildSpigot(){
 #testPackageManager
 function detectPackageManager(){
     echo "Detecting package manager..."
-    if [[ $(sudo apt install 2>/dev/null) ]]; then
+    if [[ $(sudo apt install ) ]]; then
         echo 'Detected apt'
         return apt
-    elif [[ $(sudo pacman -h 2>/dev/null) ]]; then
+    elif [[ $(sudo pacman -h ) ]]; then
         echo 'Detected pacman'
         return pacman
-    elif [[ $(sudo dnf install 2>/dev/null) ]]; then
+    elif [[ $(sudo dnf install ) ]]; then
         echo 'Detected dnf'
         return dnf
     else
@@ -58,9 +58,9 @@ function clean(){
 #moveFile
 function update(){
     echo "Updating jar file..."
-    if [[ $@ = Paper-latest.jar ]]; then
-        mv Paper-latest.jar $serverPath
-    elif [[ $@ = Spigot-latest.jar ]]; then
+    if [[ $@ = "Paper-latest.jar" ]]; then
+        mv $@ ${serverPath}
+    elif [[ $@ = "Spigot-latest.jar" ]]; then
         mv $@ ${serverPath}/$@
     else
         mv $@ ${serverPath}/plugins/
@@ -74,7 +74,7 @@ function versionCompare(){
     else
         checkPath="${serverPath}"
     fi
-    diff -q "${checkPath}/${checkFile}" "${checkFile}"
+    diff -q "${checkPath}/${checkFile}" "${checkFile}" >/dev/null 2>/dev/null
     return $?
 }
 #integrityProtect
@@ -87,14 +87,14 @@ function integrityProtect(){
         echo "Verifing ${checkFile}"
         if [ ${isPlugin} = false ]; then
             checkFile=Paper-latest.jar
-            wget $url >/dev/null 2>/dev/null
+            wget $url >/dev/null
             mv paper-*.jar Paper-latest.jar.check
-            diff -q Paper-latest.jar.check Paper-latest.jar
+            diff -q Paper-latest.jar.check Paper-latest.jar >/dev/null 2>/dev/null
             return $?
         else
             mv $checkFile "${checkFile}.check"
-            wget $url >/dev/null 2>/dev/null
-            diff -q $checkFile "${checkFile}.check"
+            wget $url >/dev/null
+            diff -q $checkFile "${checkFile}.check" >/dev/null 2>/dev/null
             return $?
         fi
     fi
@@ -123,7 +123,7 @@ function pluginUpdate(){
     echo "Updating ${checkFile}"
     if [ $@ = Floodgate ]; then
         pluginName=Floodgate
-        export url="https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/lastSuccessfulBuild/artifact/spigot/target/floodgate-spigot.jar"
+        url="https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/lastSuccessfulBuild/artifact/spigot/target/floodgate-spigot.jar"
     elif [ $@ = Geyser ]; then
         pluginName=Geyser
         url="https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/lastSuccessfulBuild/artifact/bootstrap/spigot/target/Geyser-Spigot.jar"
@@ -137,36 +137,54 @@ function pluginUpdate(){
         echo "Sorry, but we don't have your plugin's download url. Please wait for support~"
     fi
     echo "Downloading ${pluginName}"
-    wget $url >/dev/null 2>/dev/null
+    wget $url >/dev/null
     isPlugin=true
 }
 #systemUpdate
 function systemUpdate(){
-    if [[ $@ =~ "systemupdate" ]]; then
-        echo "Notice: Script will try to do a full system update"
-        if [ `whoami` = root ]; then
-            detectPackageManager
-            if [ $? = apt ]; then
-                echo "Updating using apt..."
-                apt -y full-upgrade
-            elif [ $? = dnf ]; then
-                echo "Updating using dnf..."
-                dnf -y update
-            elif [ $? = pacman ]; then
-                echo "Updating using pacman..."
-                pacman --noconfirm -Syyu
+    if [[ $@ =~ 'nosudo' ]]; then
+        if [ $? = apt ]; then
+            echo "Updating using apt..."
+            apt -y full-upgrade
+        elif [ $? = dnf ]; then
+            echo "Updating using dnf..."
+            dnf -y update
+        elif [ $? = pacman ]; then
+            echo "Updating using pacman..."
+            pacman --noconfirm -Syyu
+        else
+            unset packageManager
+            echo "Package Manager not found! Enter command to update or type 'skip' to skip"
+            read packageManager
+            if [ ! ${packageManager} = skip ]; then
+                ${packageManager}
             else
-                unset packageManager
-                echo "Package Manager not found! Enter command to update or type 'skip' to skip"
-                read packageManager
-                if [ ! ${packageManager} = skip ]; then
+                echo "Skipping"
+            fi
+        fi
+    else
+        if [ $? = apt ]; then
+            echo "Updating using apt..."
+            sudo apt -y full-upgrade
+        elif [ $? = dnf ]; then
+            echo "Updating using dnf..."
+            sudo dnf -y update
+        elif [ $? = pacman ]; then
+            echo "Updating using pacman..."
+            sudo pacman --noconfirm -Syyu
+        else
+            unset packageManager
+            echo "Package Manager not found! Enter command to update or type 'skip' to skip"
+            read packageManager
+            if [ ! ${packageManager} = skip ]; then
+                if [[ ${packageManager} =~ 'sudo' ]]; then
                     ${packageManager}
                 else
-                    echo "Skipping"
+                    ${packageManager}
                 fi
+            else
+                echo "Skipping"
             fi
-        else
-            echo "System Update Failed! You are running under `whoami`"
         fi
     fi
 }
@@ -177,7 +195,7 @@ function buildPaper(){
         export build=`expr ${build} - 1`
         echo "Testing build ${build}"
         url="https://papermc.io/api/v2/projects/paper/versions/${version}/builds/${build}/downloads/paper-${version}-${build}.jar"
-        wget $url >/dev/null 2>/dev/null
+        wget $url >/dev/null
     done
     echo "Downloaded build ${build}."
     if [ -f paper-*.jar ]; then
