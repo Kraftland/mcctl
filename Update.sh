@@ -21,6 +21,7 @@ function exitScript(){
         echo "Undefined error code"
     fi
     echo "${sign}"
+    echo 'Exitting...'
     exit $@
 }
 

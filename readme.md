@@ -28,6 +28,7 @@ version=1.19 serverPath=/mnt/main/Cache/Paper bash Update.sh -spigot -sac -geyse
 | systemupdate | Fully update your system. ( Run with `sudo` when `-unattended` activated! ) |
 | unsafe       | Disable default protecting.                                                 |
 | outtolog     | Redirect output to several log files.                                       |
+| newserver    | Automatically create server folder.                                         |
 
 # Environment Variables
 
