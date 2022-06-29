@@ -29,6 +29,8 @@ version=1.19 serverPath=/mnt/main/Cache/Paper bash Update.sh -spigot -sac -geyse
 | unsafe       | Disable default protecting.                                                 |
 | outtolog     | Redirect output to several log files.                                       |
 | newserver    | Automatically create server folder.                                         |
+| nosudo       | Do not use sudo for system update.                                          |
+| clean        | Clean leftovers.                                                            |
 
 # Environment Variables
 

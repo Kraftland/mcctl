@@ -3,11 +3,18 @@
 ######Function Start######
 #Clean leftovers
 function cleanFile(){
-
+    if [[ $@ =~ 'buildTools' ]]; then
+        for trash in 'apache-maven-3.6.0' 'BuildData' 'Bukkit' 'CraftBukkit' 'Spigot' 'work'; do
+            rm -fr ${trash} 1>/dev/null 2>/dev/null
+        done
+    fi
 }
 
 #Error code system
 function exitScript(){
+    if [ $@ = 0 ]; then
+    exit 0
+    fi
     echo '[Critical] exit code detected!'
     echo "Exit code: $@ "
     echo '[Critical]You may follow the instructions to debug'
@@ -76,7 +83,7 @@ function buildMojang(){
     if [ ${version} = 1.19 ]; then
         url=https://launcher.mojang.com/v1/objects/e00c4052dac1d59a1188b2aa9d5a87113aaf1122/server.jar
     fi
-    wget https://launcher.mojang.com/v1/objects/e00c4052dac1d59a1188b2aa9d5a87113aaf1122/server.jar
+    wget https://launcher.mojang.com/v1/objects/e00c4052dac1d59a1188b2aa9d5a87113aaf1122/server.jar >/dev/null 2>/dev/null
 
 }
 
@@ -85,7 +92,7 @@ function buildSpigot(){
     url="https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
     checkFile=BuildTools.jar
     echo "[Info] Downloading BuildTools for Spigot..."
-    wget ${url} >/dev/null
+    wget ${url} >/dev/null 2>/dev/null
     java -jar $checkFile nogui --rev ${version} >/dev/null 2>/dev/null
     rm -rf ${checkConfig}
     mv spigot-*.jar Spigot-latest.jar
@@ -95,17 +102,32 @@ function buildSpigot(){
 #testPackageManager
 function detectPackageManager(){
     echo "[Info] Detecting package manager..."
-    if [[ $(sudo apt install ) ]]; then
-        echo '[Info] Detected apt'
-        return apt
-    elif [[ $(sudo pacman -h ) ]]; then
-        echo '[Info] Detected pacman'
-        return pacman
-    elif [[ $(sudo dnf install ) ]]; then
-        echo '[Info] Detected dnf'
-        return dnf
+    if [[ $@ =~ 'nosudo' ]]; then
+        if [[ $(apt install ) ]]; then
+            echo '[Info] Detected apt'
+            packageManager=apt
+        elif [[ $(pacman -h ) ]]; then
+            echo '[Info] Detected pacman'
+            packageManager=pacman
+        elif [[ $(dnf install ) ]]; then
+            echo '[Info] Detected dnf'
+            packageManager=dnf
+        else
+            packageManager=unknown
+        fi
     else
-        return unknown
+        if [[ $(sudo apt install ) ]]; then
+            echo '[Info] Detected apt'
+            packageManager=apt
+        elif [[ $(sudo pacman -h ) ]]; then
+            echo '[Info] Detected pacman'
+            packageManager=pacman
+        elif [[ $(sudo dnf install ) ]]; then
+            echo '[Info] Detected dnf'
+            packageManager=dnf
+        else
+            packageManager=unknown
+        fi
     fi
 }
 #checkConfig
@@ -160,13 +182,13 @@ function integrityProtect(){
         echo "[Info] Verifing ${checkFile}"
         if [ ${isPlugin} = false ]; then
             checkFile=Paper-latest.jar
-            wget $url >/dev/null
+            wget $url >/dev/null 2>/dev/null
             mv paper-*.jar Paper-latest.jar.check
             diff -q Paper-latest.jar.check Paper-latest.jar >/dev/null 2>/dev/null
             return $?
         else
             mv $checkFile "${checkFile}.check"
-            wget $url >/dev/null
+            wget $url >/dev/null 2>/dev/null
             diff -q $checkFile "${checkFile}.check" >/dev/null 2>/dev/null
             return $?
         fi
@@ -210,19 +232,19 @@ function pluginUpdate(){
         echo "[Warn] Sorry, but we don't have your plugin's download url. Please wait for support~"
     fi
     echo "[Info] Downloading ${pluginName}"
-    wget $url >/dev/null
+    wget $url >/dev/null 2>/dev/null
     isPlugin=true
 }
 #systemUpdate
 function systemUpdate(){
     if [[ $@ =~ 'nosudo' ]]; then
-        if [ $? = apt ]; then
+        if [ ${packageManager} = apt ]; then
             echo "[Info] Updating using apt..."
             apt -y full-upgrade
-        elif [ $? = dnf ]; then
+        elif [ ${packageManager} = dnf ]; then
             echo "[Info] Updating using dnf..."
             dnf -y update
-        elif [ $? = pacman ]; then
+        elif [ ${packageManager} = pacman ]; then
             echo "[Info] Updating using pacman..."
             pacman --noconfirm -Syyu
         else
@@ -236,13 +258,13 @@ function systemUpdate(){
             fi
         fi
     else
-        if [ $? = apt ]; then
+        if [ ${packageManager} = 1 ]; then
             echo "[Info] Updating using apt..."
             sudo apt -y full-upgrade
-        elif [ $? = dnf ]; then
+        elif [ ${packageManager} = 2 ]; then
             echo "[Info] Updating using dnf..."
             sudo dnf -y update
-        elif [ $? = pacman ]; then
+        elif [ ${packageManager} = 3 ]; then
             echo "[Info] Updating using pacman..."
             sudo pacman --noconfirm -Syyu
         else
@@ -256,7 +278,7 @@ function systemUpdate(){
                     if [[ ${packageManager} =~ 'sudo' ]]; then
                         ${packageManager}
                     else
-                        ${packageManager}
+                        sudo ${packageManager}
                     fi
                 else
                     echo "[Info] Skipping"
@@ -272,7 +294,7 @@ function buildPaper(){
         export build=`expr ${build} - 1`
         echo "[Info] Testing build ${build}"
         url="https://papermc.io/api/v2/projects/paper/versions/${version}/builds/${build}/downloads/paper-${version}-${build}.jar"
-        wget $url >/dev/null
+        wget $url >/dev/null 2>/dev/null
     done
     echo "[Info] Downloaded build ${build}."
     if [ -f paper-*.jar ]; then
@@ -367,12 +389,14 @@ function main(){
         unset checkFile
         update *.jar
     fi
-    ######Plugin Update End######
-    if [ `whoami` = 'root' ]; then
-        systemUpdate nosudo $@
-    else
-        systemUpdate $@
+
+
+    if [[ $@ =~ 'clean' ]]; then
+        cleanFile -buildTools
     fi
+    ######Plugin Update End######
+    detectPackageManager $@
+    systemUpdate $@
     rm -rf ${serverPath}/plugins/BuildTools.jar
     clean
     echo "[Info] Job finished at `date`, have a nice day~"
