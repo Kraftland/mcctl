@@ -1,6 +1,83 @@
 #!/bin/bash
 
 ######Function Start######
+#Clean leftovers
+function cleanFile(){
+
+}
+
+#Error code system
+function exitScript(){
+    echo '[Critical] exit code detected!'
+    echo "Exit code: $@ "
+    echo '[Critical]You may follow the instructions to debug'
+    if [ $@ = 1 ]; then
+        sign='Unknown error'
+    elif [ $@ = 2 ]; then
+        sign='Can not create directory'
+    elif [ $@ =3 ]; then
+        code3='Non-64-bit system detected'
+    else
+        echo "Undefined error code"
+    fi
+    echo "${sign}"
+    exit $@
+}
+
+#Create folders for the first time
+function createFolder(){
+    if [ ! -d ${serverPath} ]; then
+        echo '[Info] Path to server is empty, creating new directory'
+        mkdir ${serverPath}
+        mkdir ${serverPath}/plugins
+        if [ $? = 1 ]; then
+        echo '[Info] mkdir returned error code 1, retrying with sudo'
+            if [ $@ =~ 'unattended' ]; then
+                echo '[Warn] unattended flag detected, terminating...'
+                exitScript 2
+            else
+                if [ `whoami` = root ]; then
+                    exitScript 2
+                else
+                    sudo mkdir ${serverPath}
+                    sudo mkdir ${serverPath}/plugins
+                fi
+            fi
+        fi
+        echo '[Info] Directory created.'
+    else
+        echo '[Info] Directory already exists'
+    fi
+    if [ ! -d ${serverPath}/plugins ]; then
+        echo '[Info] Plugins folder not found, trying to create'
+        mkdir ${serverPath}/plugins
+        if [ $? = 1 ]; then
+            echo '[Info] mkdir failed, trying with root'
+            if [[ $@ =~ 'unattended' ]]; then
+                sudo mkdir ${serverPath}/plugins
+            else
+                echo '[Warn] unattended flag detected'
+                exitScript 2
+            fi
+            if [ $? = 1 ]; then
+                echo '[Warn] Plugins folder cannot be created'
+                exitScript 2
+            fi
+        fi
+    else
+        echo '[Info] Directory already exists'
+    fi
+}
+
+#Build origin server
+function buildMojang(){
+    if [ ${version} = 1.19 ]; then
+        url=https://launcher.mojang.com/v1/objects/e00c4052dac1d59a1188b2aa9d5a87113aaf1122/server.jar
+    fi
+    wget https://launcher.mojang.com/v1/objects/e00c4052dac1d59a1188b2aa9d5a87113aaf1122/server.jar
+
+}
+
 #Build Spigot
 function buildSpigot(){
     url="https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
@@ -226,7 +303,7 @@ function checkBit(){
             echo "Warning at `date`, running on 32-bit system may encounter unexpected problems."
         else
             echo "32-bit system detected, script is stopping..."
-            exit 2
+            exitScript 3
         fi
     fi
 }
@@ -237,6 +314,9 @@ function main(){
     echo "Reading settings"
     clean
     checkConfig
+    if [[ $@ =~ 'newserver' ]]; then
+        createFolder $@
+    fi
 
     ######Paper Update Start######
     echo "Starting auto update at `date`"
@@ -297,7 +377,7 @@ function main(){
     rm -rf ${serverPath}/plugins/BuildTools.jar
     clean
     echo "Job finished at `date`, have a nice day~"
-    exit 0
+    exitScript 0
 }
 
 ######Function End######
