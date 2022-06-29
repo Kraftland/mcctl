@@ -13,7 +13,7 @@ minecraft-server-updater is a bash script that can automatically update your Min
 Examples:
 
 ```bash
-version=1.19 serverPath=/mnt/main/Cache/Paper bash Update.sh -spigot -sac -geyser -floodgate
+version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh -update -spigot -sac -geyser -floodgate
 ```
 
 # Flags
@@ -31,6 +31,7 @@ version=1.19 serverPath=/mnt/main/Cache/Paper bash Update.sh -spigot -sac -geyse
 | newserver    | Automatically create server folder.                                         |
 | nosudo       | Do not use sudo for system update.                                          |
 | clean        | Clean leftovers.                                                            |
+| update       | Enable update feature                                                       |
 
 # Environment Variables
 
