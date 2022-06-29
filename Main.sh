@@ -7,30 +7,40 @@ function cleanFile(){
         for trash in 'apache-maven-3.6.0' 'BuildData' 'Bukkit' 'CraftBukkit' 'Spigot' 'work'; do
             rm -fr ${trash} 1>/dev/null 2>/dev/null
         done
+    unset trash
+    fi
+    if [[ $@ =~ 'log' ]]; then
+        for logFiles in 'debug.log' 'BuildTools.log.txt' 'wget-log' 'updater.log'; do
+            rm -f ${logFiles}
+        done
+        unset logFiles
     fi
 }
 
-#Error code system
+#Exit script
 function exitScript(){
     if [ $@ = 0 ]; then
-    exit 0
-    fi
-    echo '[Critical] exit code detected!'
-    echo "Exit code: $@ "
-    echo '[Critical]You may follow the instructions to debug'
-    if [ $@ = 1 ]; then
-        sign='Unknown error'
-    elif [ $@ = 2 ]; then
-        sign='Can not create directory'
-    elif [ $@ =3 ]; then
-        sign='Non-64-bit system detected'
-    else
-        sign="Undefined error code"
-    fi
-    echo "[Critical] ${sign}"
-    echo '[Critical] Exitting...'
-    unset ${sign}
     exit $@
+    else
+        echo '[Critical] exit code detected!'
+        echo "Exit code: $@ "
+        echo '[Critical]You may follow the instructions to debug'
+        if [ $@ = 1 ]; then
+            sign='Unknown error'
+        elif [ $@ = 2 ]; then
+            sign='Can not create directory'
+        elif [ $@ =3 ]; then
+            sign='Non-64-bit system detected'
+        elif [ $@ = 5 ]; then
+            sign='System update failed.'
+        else
+            sign="Undefined error code"
+        fi
+        echo "[Critical] ${sign}"
+        echo '[Critical] Exitting...'
+        unset ${sign}
+        exit $@
+    fi
 }
 
 #Create folders for the first time
@@ -249,41 +259,22 @@ function systemUpdate(){
             pacman --noconfirm -Syyu
         else
             unset packageManager
-            echo "[Warn] Package manager not found! Enter command to update or type 'skip' to skip"
-            read packageManager
-            if [ ! ${packageManager} = skip ]; then
-                ${packageManager}
-            else
-                echo "[Info] Skipping"
-            fi
+            echo "[Critical] Package manager not found!"
+            exitScript 5
         fi
     else
-        if [ ${packageManager} = 1 ]; then
+        if [ ${packageManager} = apt ]; then
             echo "[Info] Updating using apt..."
             sudo apt -y full-upgrade
-        elif [ ${packageManager} = 2 ]; then
+        elif [ ${packageManager} = dnf ]; then
             echo "[Info] Updating using dnf..."
             sudo dnf -y update
-        elif [ ${packageManager} = 3 ]; then
+        elif [ ${packageManager} = pacman ]; then
             echo "[Info] Updating using pacman..."
             sudo pacman --noconfirm -Syyu
         else
             unset packageManager
-            if [[ $@ =~ "unattended" ]];then
-                echo "[Warn] unattended flag detected, skipping system update due to unknown package manager..."
-            else
-                echo "[Info] Package Manager not found! Enter command to update or type 'skip' to skip"
-                read packageManager
-                if [ ! ${packageManager} = skip ]; then
-                    if [[ ${packageManager} =~ 'sudo' ]]; then
-                        ${packageManager}
-                    else
-                        sudo ${packageManager}
-                    fi
-                else
-                    echo "[Info] Skipping"
-                fi
-            fi
+            exitScript 5
         fi
     fi
 }
@@ -393,11 +384,12 @@ function updateMain(){
 
     if [[ $@ =~ 'clean' ]]; then
         cleanFile -buildTools
+        cleanFile -logFiles
     fi
     ######Plugin Update End######
     detectPackageManager $@
     systemUpdate $@
-    rm -rf ${serverPath}/plugins/BuildTools.jar
+    rm -rf ${serverPath}/plugins/BuildTools.jar #Due to a unknown bug
     clean
     echo "[Info] Job finished at `date`, have a nice day~"
     exitScript 0
