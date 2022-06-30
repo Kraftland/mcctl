@@ -1,24 +1,28 @@
-# minecraft-server-updater
+# minecraft-server-maintainer
 
 ---
 
-minecraft-server-updater is a bash script that can automatically update your Minecraft server's core ( Spigot and Paper, currently) and some plug-ins.
+minecraft-server-maintainer is a bash script that can automatically maintain your Minecraft server's core ( Spigot and Paper, currently) and some plug-ins.
 
 # Usage
 
 ```bash
-[Environment Variables] bash /Path/to/your/script.sh -[Flags]
-```
-
-Examples:
-
-```bash
-version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh -update -spigot -sac -geyser -floodgate
+[Environment Variables] bash /Path/to/your/script.sh [Flags]
 ```
 
 # Flags
 
-| Options      | Effects                                                                     |
+## Update feature
+
+***<u><mark>Notice: Type `update` flag to enable update feature.</mark></u>***
+
+Examples:
+
+```bash
+version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh update spigot sac geyser floodgate
+```
+
+| Flags        | Effects                                                                     |
 | ------------ | --------------------------------------------------------------------------- |
 | spigot       | Update spigot.                                                              |
 | paper        | Update paper.                                                               |
@@ -31,7 +35,21 @@ version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh -update -spigot -sac 
 | newserver    | Automatically create server folder.                                         |
 | nosudo       | Do not use sudo for system update.                                          |
 | clean        | Clean leftovers.                                                            |
-| update       | Enable update feature                                                       |
+
+## Start server feature (Experimental)
+
+***<u><mark>Notice: Type <code>update</code> flag to enable start server feature.</mark></u>***
+
+Examples:
+
+```bash
+version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh start paper
+```
+
+| Flags  | Effects        |
+| ------ | -------------- |
+| paper  | Start PaperMC  |
+| spigot | Start SpigotMC |
 
 # Environment Variables
 
