@@ -30,11 +30,15 @@ function exitScript(){
         elif [[ $@ =~ 2 ]]; then
             sign='Can not create directory'
         elif [[ $@ =~ 3 ]]; then
-            sign='Non-64-bit system detected'
+            sign='Non-64-bit system detected, use unsafe to override'
         elif [[ $@ =~ 4 ]];then
             sign='Environment variables not set'
         elif [[ $@ =~ 5 ]]; then
-            sign='System update failed.'
+            sign='System update failed'
+        elif [[ $@ =~ 6 ]]; then
+            sign='BuildTools failed to start, use clean to fix it'
+        elif [[ $@ =~ 7 ]]; then
+            sign='No jar file detected'
         else
             sign="Undefined error code"
         fi
@@ -106,6 +110,9 @@ function buildSpigot(){
     echo "[Info] Downloading BuildTools for Spigot..."
     wget ${url} >/dev/null 2>/dev/null
     java -jar $checkFile nogui --rev ${version} >/dev/null 2>/dev/null
+    if [ ! $? = 0 ]; then
+        exitScript 6
+    fi
     rm -rf ${checkConfig}
     mv spigot-*.jar Spigot-latest.jar
     update Spigot-latest.jar
@@ -315,7 +322,7 @@ function checkBit(){
         echo "[Info] Running on 64-bit system."
     elif [ $? = 32 ]; then
         if [[ $@ =~ "unsafe" ]]; then
-            echo "[Warn] Warning at `date`, running on 32-bit system may encounter unexpected problems."
+            echo "[Warn] Running on 32-bit system may encounter unexpected problems."
         else
             exitScript 3
         fi
@@ -343,7 +350,6 @@ function updateMain(){
     ######Spigot Update Start######
     if [[ $@ =~ "spigot" ]]; then
         buildSpigot
-        update
     fi
     ######Plugin Update Start######
     if [[ $@ =~ "mtvehicles" ]]; then
@@ -389,19 +395,50 @@ function updateMain(){
         cleanFile -logFiles
     fi
     ######Plugin Update End######
-    detectPackageManager $@
-    systemUpdate $@
-    rm -rf ${serverPath}/plugins/BuildTools.jar #Due to a unknown bug
+    if [[ $@ =~ 'system' ]]; then
+        detectPackageManager $@
+        systemUpdate $@
+    fi
+    #rm -rf ${serverPath}/plugins/BuildTools.jar #Due to a unknown bug
     clean
     echo "[Info] Job finished at `date`, have a nice day~"
     exitScript 0
 }
 
+#Start Minecraft server
+function startMinecraft(){
+    if [ ! -f ${serverPath} *-latest.jar ]; then
+        exitScript 7
+    fi
+    if [[ $@ =~ 'spigot' ]]; then
+        if [ -f ${serverPath}/spigot-*.jar ]; then
+            mv ${serverPath}/spigot-*.jar ${serverPath}/Spigot-latest.jar
+        fi
+        cd ${serverPath}
+        java -jar Spigot-latest.jar
+    elif [[ $@ =~ paper ]]; then
+        if [ -f ${serverPath}/paper-*.jar ]; then
+            mv ${serverPath}/paper-*.jar ${serverPath}/Paper-latest.jar
+        fi
+        cd ${serverPath}
+        java -jar Paper-latest.jar
+    fi
+}
+
 ######Function End######
 if [[ $@ =~ update ]]; then
     if [[ $@ =~ "unattended" ]]; then
-        updateMain $@ 1>> updater.log 2>>debug.log
+        updateMain $@ -nosudo 1>> updater.log 2>>debug.log
     else
         updateMain $@
     fi
+fi
+
+if [[ $@ =~ clean ]]; then
+    cleanFile buildTools
+    #cleanFile log
+fi
+
+if [[ $@ =~ startminecraft ]]; then
+    startMinecraft $@
 fi
