@@ -24,14 +24,16 @@ function exitScript(){
     else
         echo '[Critical] exit code detected!'
         echo "Exit code: $@ "
-        echo '[Critical]You may follow the instructions to debug'
-        if [ $@ = 1 ]; then
+        echo '[Critical] You may follow the instructions to debug'
+        if [[ $@ =~ 1 ]]; then
             sign='Unknown error'
-        elif [ $@ = 2 ]; then
+        elif [[ $@ =~ 2 ]]; then
             sign='Can not create directory'
-        elif [ $@ =3 ]; then
+        elif [[ $@ =~ 3 ]]; then
             sign='Non-64-bit system detected'
-        elif [ $@ = 5 ]; then
+        elif [[ $@ =~ 4 ]];then
+            sign='Environment variables not set'
+        elif [[ $@ =~ 5 ]]; then
             sign='System update failed.'
         else
             sign="Undefined error code"
