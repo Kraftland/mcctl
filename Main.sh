@@ -1,15 +1,51 @@
 #!/bin/bash
 
 ######Function Start######
+#Install prerequests
+function installRequirements(){
+    detectPackageManager
+    if [ ${packageManager}= 'pacman' ]; then
+        sudo pacman -S jre-openjdk-headless screen wget --noconfirm --needed
+    elif [ ${packageManager} = 'apt' ]; then
+        sudo apt install -y default-jdk screen wget
+    elif [ ${packageManager} = 'dnf' ]; then
+        echo "[Critical] dnf not supported"
+        exitScript 9
+    fi
+}
+
+#Check Screen
+function checkScreen(){
+    echo '[Info]Checking if you have already installed screen'
+    screen --version 2>/dev/null
+    if [[ $? =~ 127 ]]; then
+        exitScript 8
+    fi
+}
+
+#Create Screen
+function createScreen(){
+    echo "[Info] Creating new screen ${screenName}.${screenId}"
+    screen -dmS ${screenName}
+    screenId=`screen -ls | grep .${screenName} | awk '{print $1}' | cut -d "." -f 1`
+    screen -x ${screenId} -p 0 -X stuff "${screenCommand}"
+    screen -x ${screenId} -p 0 -X stuff '\r'
+    echo '[Info] Screen created'
+}
+
+
+
 #Clean leftovers
 function cleanFile(){
     if [[ $@ =~ 'buildTools' ]]; then
+        echo '[Info] Cleaning Spigot leftovers'
         for trash in 'apache-maven-3.6.0' 'BuildData' 'Bukkit' 'CraftBukkit' 'Spigot' 'work'; do
             rm -fr ${trash} 1>/dev/null 2>/dev/null
         done
     unset trash
     fi
     if [[ $@ =~ 'log' ]]; then
+        echo '[Info] Cleaning logs'
         for logFiles in 'debug.log' 'BuildTools.log.txt' 'wget-log' 'updater.log'; do
             rm -f ${logFiles}
         done
@@ -22,7 +58,7 @@ function exitScript(){
     if [ $@ = 0 ]; then
     exit $@
     else
-        echo '[Critical] exit code detected!'
+        echo '[Critical] Exit code detected!'
         echo "Exit code: $@ "
         echo '[Critical] You may follow the instructions to debug'
         if [[ $@ =~ 1 ]]; then
@@ -39,6 +75,10 @@ function exitScript(){
             sign='BuildTools failed to start, use clean to fix it'
         elif [[ $@ =~ 7 ]]; then
             sign='No jar file detected'
+        elif [[ $@ =~ 8 ]]; then
+            sign='Screen not installed'
+        elif [[ $@ =~ 9 ]]; then
+            sign='Package manager not supported'
         else
             sign="Undefined error code"
         fi
@@ -99,14 +139,14 @@ function buildMojang(){
     if [ ${version} = 1.19 ]; then
         url=https://launcher.mojang.com/v1/objects/e00c4052dac1d59a1188b2aa9d5a87113aaf1122/server.jar
     fi
-    wget https://launcher.mojang.com/v1/objects/e00c4052dac1d59a1188b2aa9d5a87113aaf1122/server.jar >/dev/null 2>/dev/null
+    wget ${url} >/dev/null 2>/dev/null
 
 }
 
 #Build Spigot
 function buildSpigot(){
     url="https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
-    checkFile=BuildTools.jar
+    checkFile='BuildTools.jar'
     echo "[Info] Downloading BuildTools for Spigot..."
     wget ${url} >/dev/null 2>/dev/null
     java -jar $checkFile nogui --rev ${version} >/dev/null 2>/dev/null
@@ -124,28 +164,28 @@ function detectPackageManager(){
     if [[ $@ =~ 'nosudo' ]]; then
         if [[ $(apt install ) ]]; then
             echo '[Info] Detected apt'
-            packageManager=apt
+            packageManager='apt'
         elif [[ $(pacman -h ) ]]; then
             echo '[Info] Detected pacman'
-            packageManager=pacman
+            packageManager='pacman'
         elif [[ $(dnf install ) ]]; then
             echo '[Info] Detected dnf'
-            packageManager=dnf
+            packageManager='dnf'
         else
-            packageManager=unknown
+            packageManager='unknown'
         fi
     else
         if [[ $(sudo apt install ) ]]; then
             echo '[Info] Detected apt'
-            packageManager=apt
+            packageManager='apt'
         elif [[ $(sudo pacman -h ) ]]; then
             echo '[Info] Detected pacman'
-            packageManager=pacman
+            packageManager='pacman'
         elif [[ $(sudo dnf install ) ]]; then
             echo '[Info] Detected dnf'
-            packageManager=dnf
+            packageManager='dnf'
         else
-            packageManager=unknown
+            packageManager='unknown'
         fi
     fi
 }
@@ -330,11 +370,6 @@ function checkBit(){
 }
 
 function updateMain(){
-    echo "[Info] Hello! `whoami` at `date`"
-    checkBit
-    echo "[Info] Reading settings"
-    clean
-    checkConfig
     if [[ $@ =~ 'newserver' ]]; then
         createFolder $@
     fi
@@ -407,6 +442,9 @@ function updateMain(){
 
 #Start Minecraft server
 function startMinecraft(){
+    if [[ $@ =~ 'd' ]]; then
+        checkScreen
+    fi
     if [ ! -f ${serverPath} *-latest.jar ]; then
         exitScript 7
     fi
@@ -415,17 +453,33 @@ function startMinecraft(){
             mv ${serverPath}/spigot-*.jar ${serverPath}/Spigot-latest.jar
         fi
         cd ${serverPath}
-        java -jar Spigot-latest.jar
+        if [[ $@ =~ d ]]; then
+            screenName='spigot' screenCommand='java -jar Spigot-latest.jar nogui' createScreen
+        else
+            java -jar Spigot-latest.jar
+        fi
     elif [[ $@ =~ paper ]]; then
         if [ -f ${serverPath}/paper-*.jar ]; then
             mv ${serverPath}/paper-*.jar ${serverPath}/Paper-latest.jar
         fi
         cd ${serverPath}
-        java -jar Paper-latest.jar
+        if [[ $@ =~ 'd' ]]; then
+            screenName='paper' screenCommand='java -jar Paper-latest.jar nogui' createScreen
+        else
+            java -jar Paper-latest.jar
+        fi
     fi
 }
 
 ######Function End######
+echo "[Info] Hello! `whoami` at `date`"
+checkBit
+echo "[Info] Reading settings"
+clean
+checkConfig
+if [[ $@ =~ "instreq" ]]; then
+    installRequirements $@
+fi
 if [[ $@ =~ update ]]; then
     if [[ $@ =~ "unattended" ]]; then
         updateMain $@ -nosudo 1>> updater.log 2>>debug.log
@@ -436,7 +490,7 @@ fi
 
 if [[ $@ =~ clean ]]; then
     cleanFile buildTools
-    #cleanFile log
+    cleanFile log
 fi
 
 if [[ $@ =~ startminecraft ]]; then

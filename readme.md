@@ -2,7 +2,7 @@
 
 ---
 
-minecraft-server-maintainer is a bash script that can automatically maintain your Minecraft server's core ( Spigot and Paper, currently) and some plug-ins.
+minecraft-server-maintainer is a bash script that can automatically maintain your Minecraft server's core (Spigot and Paper, currently) and some plug-ins.
 
 # Usage
 
@@ -12,7 +12,7 @@ minecraft-server-maintainer is a bash script that can automatically maintain you
 
 # Flags
 
-## Update feature
+## Update
 
 ***<u><mark>Notice: Type `update` flag to enable update feature.</mark></u>***
 
@@ -36,24 +36,29 @@ version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh update spigot sac gey
 | nosudo       | Do not use sudo for system update.                                          |
 | clean        | Clean leftovers.                                                            |
 
-## Start server feature (Experimental)
+## Start server (Experimental)
 
-***<u><mark>Notice: Type <code>update</code> flag to enable start server feature.</mark></u>***
+***<u><mark>Notice: Type <code>start</code> flag to enable start server feature.</mark></u>***
 
 Examples:
 
 ```bash
-version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh start paper
+version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh start paper d
 ```
 
-| Flags  | Effects        |
-| ------ | -------------- |
-| paper  | Start PaperMC  |
-| spigot | Start SpigotMC |
+| Flags  | Effects                                                     |
+| ------ | ----------------------------------------------------------- |
+| paper  | Start PaperMC                                               |
+| spigot | Start SpigotMC                                              |
+| d      | Run Minecraft in screen sockets. (Require screen installed) |
+
+## Install requirements
+
+| Flags   | Effects              |
+| ------- | -------------------- |
+| instreq | Install requirements |
 
 # Environment Variables
-
-In order to achieve automated process, environment variables can be used.
 
 | Variables  | Effects                               |
 | ---------- | ------------------------------------- |
