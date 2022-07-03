@@ -5,7 +5,7 @@
 minecraft-server-maintainer (aka mcmt) is a bash script that can automatically maintain your Minecraft server.# Usage
 
 ```bash
-[Environment Variables] bash /Path/to/your/script.sh [Flags]
+[Environment Variables] zsh /Path/to/your/script.sh [Flags]
 ```
 
 # Flags
@@ -17,7 +17,7 @@ minecraft-server-maintainer (aka mcmt) is a bash script that can automatically m
 Examples:
 
 ```bash
-version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh update spigot sac geyser floodgate
+version=1.19 serverPath=/mnt/main/Cache/Paper zsh Main.sh update spigot sac geyser floodgate
 ```
 
 | Flags        | Effects                                                                     |
@@ -90,8 +90,6 @@ WantedBy=multi-user.target
 | version    | Define your Minecraft server version. |
 | serverPath | Define your server path.              |
 
-
-
 # Tips and tricks
 
 ## How to set environment variables permanently?
@@ -110,3 +108,7 @@ serverPath=/mnt/main/Cache/Paper
 ## How to update my `mcmt` command?
 
 Just type `mcmt install`, the script will handle it automatically
+
+## Script throws a error code
+
+Script have a built-in debug system, it will automatically detect error code and give possible solutions. Don't panic and follow instructions
