@@ -8,6 +8,7 @@ function installScript(){
     if [ ! $? = 0 ]; then
         exitScript 11
     fi
+    echo '[Info] Installing script, asking root permission'
     pathPrevious=`pwd`
     cd minecraft-server-maintainer
     mv Main.sh mcmt
@@ -20,6 +21,7 @@ function installScript(){
 
 #Create service file
 function createStartupService(){
+    checkSystemd
     flags=`echo $@ | cut -c 10-`
     echo """
 [Unit]
@@ -29,12 +31,20 @@ ExecStart=env version=${version} serverPath=${serverPath} mcmt ${flags}
 [Install]
 WantedBy=multi-user.target
     """ >mcmt.service
+    echo "[Info] Type 'Confirm' to confirm or any other key to cancel"
+    read checkConfirm
+    if [ ${checkConfirm} = 'Confirm' ]; then
+        sudo mv mcmt.service /etc/systemd/system/
+        sudo systemctl enable mcmt
+    else
+        echo '[Info] Cancelled'
+    fi
 }
 
 #Check systemd function
 function checkSystemd(){
     echo '[Info] Checking if you have systemd installed'
-    systemctl --version
+    systemctl --version 1>/dev/null 2>/dev/null
     if [ $? = 127 ]; then
         exitScript 10
     elif [ $? = 0 ]; then
@@ -255,11 +265,11 @@ checkConfig(){
 }
 #removeJarFile
 function clean(){
-    echo "[Info] Cleaning."
-    rm -rf *.jar
-    rm -rf *.check
-    rm -rf *.1
-    rm -rf *.2
+    echo "[Info] Cleaning"
+    rm -rf *.jar 1>/dev/null 2>/dev/null
+    rm -rf *.check 1>/dev/null 2>/dev/null
+    rm -rf *.1 1>/dev/null 2>/dev/null
+    rm -rf *.2 1>/dev/null 2>/dev/null
 }
 #moveFile
 function update(){
@@ -536,6 +546,15 @@ function startMinecraft(){
 }
 
 ######Function End######
+if [[ ! $@ ]]; then
+    echo "[Info] Hello! `whoami` at `date`"
+    exit 0
+fi
+echo "[Info] Hello! `whoami` at `date`"
+checkBit
+echo "[Info] Reading settings"
+clean
+checkConfig
 if [[ $@ =~ 'install' ]]; then
     installScript
     exit 0
@@ -544,11 +563,6 @@ if [[ $@ =~ 'autostart' ]]; then
     createStartupService $@
     exit 0
 fi
-echo "[Info] Hello! `whoami` at `date`"
-checkBit
-echo "[Info] Reading settings"
-clean
-checkConfig
 if [[ $@ =~ "instreq" ]]; then
     installRequirements $@
 fi
