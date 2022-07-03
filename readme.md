@@ -2,9 +2,7 @@
 
 ---
 
-minecraft-server-maintainer is a bash script that can automatically maintain your Minecraft server's core (Spigot and Paper, currently) and some plug-ins.
-
-# Usage
+minecraft-server-maintainer (aka mcmt) is a bash script that can automatically maintain your Minecraft server.# Usage
 
 ```bash
 [Environment Variables] bash /Path/to/your/script.sh [Flags]
@@ -56,7 +54,7 @@ version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh start paper d
 
 - Type `install` flag.
 
-## Let server start at boot
+## Load Minecraft server on startup
 
 First type `autostart` flag.
 
@@ -91,3 +89,24 @@ WantedBy=multi-user.target
 | ---------- | ------------------------------------- |
 | version    | Define your Minecraft server version. |
 | serverPath | Define your server path.              |
+
+
+
+# Tips and tricks
+
+## How to set environment variables permanently?
+
+Edit your `/etc/environment`
+
+type your environment variables as KEY=PAL
+
+Examples:
+
+```bash
+version=1.19
+serverPath=/mnt/main/Cache/Paper
+```
+
+## How to update my `mcmt` command?
+
+Just type `mcmt install`, the script will handle it automatically
