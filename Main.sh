@@ -29,6 +29,7 @@ function installScript(){
 function createStartupService(){
     checkSystemd
     flags=`echo $@ | cut -c 10-`
+    echo '[Info] Creating service file'
     echo """
 [Unit]
 Description=minecraft-server-maintainer's start module
@@ -37,6 +38,11 @@ ExecStart=env version=${version} serverPath=${serverPath} mcmt ${flags}
 [Install]
 WantedBy=multi-user.target
     """ >mcmt.service
+    if [ ! ${EDITOR} ]; then
+        nano mcmt.service
+    else
+        ${EDITOR} mcmt.service
+    fi
     echo "[Info] Type 'Confirm' to confirm or any other key to cancel"
     read checkConfirm
     if [ ${checkConfirm} = 'Confirm' ]; then
