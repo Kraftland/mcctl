@@ -10,6 +10,10 @@ minecraft-server-maintainer (aka mcmt) is a bash script that can automatically m
 
 # Flags
 
+## Install script as a command `mcmt` (Recommended)
+
+- Type `install` flag.
+
 ## Update
 
 ***<u><mark>Notice: Type `update` flag to enable update feature.</mark></u>***
@@ -50,9 +54,7 @@ version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh start paper d
 | spigot | Start SpigotMC                                              |
 | d      | Run Minecraft in screen sockets. (Require screen installed) |
 
-## Install script as a command `mcmt`
 
-- Type `install` flag.
 
 ## Load Minecraft server on startup
 
