@@ -13,7 +13,13 @@ function installScript(){
     cd minecraft-server-maintainer
     mv Main.sh mcmt
     sudo mv mcmt /usr/bin
+    if [ ! $? = 0 ]; then
+        exitScript 12
+    fi
     sudo chmod +x /usr/bin/mcmt
+    if [ ! $? = 0 ]; then
+        exitScript 12
+    fi
     cd ${pathPrevious}
     rm -rf minecraft-server-maintainer
     echo '[Info] Script installed'
@@ -138,6 +144,8 @@ function exitScript(){
             sign='Systemd missing'
         elif [[ $@ = '11' ]]; then
             sign='Network unrechable'
+        elif [[ $@ = 12 ]]; then
+            sign='Permission denied'
         elif [[ ! $@ ]]; then
             sign='Internal error'
         else
