@@ -1,8 +1,52 @@
 #!/bin/bash
 
 ######Function Start######
+#Install script
+function installScript(){
+    echo '[Info] Downloading script'
+    git clone https://github.com/Kimiblock/minecraft-server-maintainer.git 2>/dev/null 1>/dev/null
+    if [ ! $? = 0 ]; then
+        exitScript 11
+    fi
+    pathPrevious=`pwd`
+    cd minecraft-server-maintainer
+    mv Main.sh mcmt
+    sudo mv mcmt /usr/bin
+    sudo chmod +x /usr/bin/mcmt
+    cd ${pathPrevious}
+    rm -rf minecraft-server-maintainer
+    echo '[Info] Script installed'
+}
+
+#Create service file
+function createStartupService(){
+    flags=`echo $@ | cut -c 10-`
+    echo """
+[Unit]
+Description=minecraft-server-maintainer's start module
+[Service]
+ExecStart=env version=${version} serverPath=${serverPath} mcmt ${flags}
+[Install]
+WantedBy=multi-user.target
+    """ >mcmt.service
+}
+
+#Check systemd function
+function checkSystemd(){
+    echo '[Info] Checking if you have systemd installed'
+    systemctl --version
+    if [ $? = 127 ]; then
+        exitScript 10
+    elif [ $? = 0 ]; then
+        echo '[Info] Systemd installed and functioned correctly'
+    else
+        echo "[Warn] Systemd installed but returned an error code $?"
+    fi
+}
+
 #Install prerequests
 function installRequirements(){
+    echo '[Info] Installing requirements'
     detectPackageManager
     if [ ${packageManager}= 'pacman' ]; then
         sudo pacman -S jre-openjdk-headless screen wget --noconfirm --needed
@@ -12,6 +56,7 @@ function installRequirements(){
         echo "[Critical] dnf not supported"
         exitScript 9
     fi
+    echo '[Info] Finished installing requirements'
 }
 
 #Check Screen
@@ -61,24 +106,30 @@ function exitScript(){
         echo '[Critical] Exit code detected!'
         echo "Exit code: $@ "
         echo '[Critical] You may follow the instructions to debug'
-        if [[ $@ =~ 1 ]]; then
+        if [[ $@ = 1 ]]; then
             sign='Unknown error'
-        elif [[ $@ =~ 2 ]]; then
+        elif [[ $@ = 2 ]]; then
             sign='Can not create directory'
-        elif [[ $@ =~ 3 ]]; then
+        elif [[ $@ = 3 ]]; then
             sign='Non-64-bit system detected, use unsafe to override'
-        elif [[ $@ =~ 4 ]];then
+        elif [[ $@ = 4 ]];then
             sign='Environment variables not set'
-        elif [[ $@ =~ 5 ]]; then
+        elif [[ $@ = 5 ]]; then
             sign='System update failed'
-        elif [[ $@ =~ 6 ]]; then
+        elif [[ $@ = 6 ]]; then
             sign='BuildTools failed to start, use clean to fix it'
-        elif [[ $@ =~ 7 ]]; then
+        elif [[ $@ = 7 ]]; then
             sign='No jar file detected'
-        elif [[ $@ =~ 8 ]]; then
+        elif [[ $@ = 8 ]]; then
             sign='Screen not installed'
-        elif [[ $@ =~ 9 ]]; then
+        elif [[ $@ = 9 ]]; then
             sign='Package manager not supported'
+        elif [[ $@ = '10' ]]; then
+            sign='Systemd missing'
+        elif [[ $@ = '11' ]]; then
+            sign='Network unrechable'
+        elif [[ ! $@ ]]; then
+            sign='Internal error'
         else
             sign="Undefined error code"
         fi
@@ -140,7 +191,8 @@ function buildMojang(){
         url=https://launcher.mojang.com/v1/objects/e00c4052dac1d59a1188b2aa9d5a87113aaf1122/server.jar
     fi
     wget ${url} >/dev/null 2>/dev/null
-
+    mv server.jar Minecraft-latest.jar
+    update Minecraft-latest.jar
 }
 
 #Build Spigot
@@ -215,9 +267,11 @@ function update(){
     if [[ $@ = "Paper-latest.jar" ]]; then
         mv $@ ${serverPath}
     elif [[ $@ = "Spigot-latest.jar" ]]; then
-        mv $@ ${serverPath}/$@
+        mv $@ ${serverPath}
+    elif [[ $@ = "Minecraft-latest.jar" ]]; then
+        mv $@ ${serverPath}
     else
-        mv $@ ${serverPath}/plugins/
+        mv $@ ${serverPath}/plugins
     fi
 }
 #versionCompare
@@ -374,19 +428,19 @@ function updateMain(){
         createFolder $@
     fi
 
-    ######Paper Update Start######
     echo "[Info] Starting auto update at `date`"
     cd ${serverPath}/Update/
     if [[ $@ =~ "paper" ]]; then
         buildPaper
     fi
-    ######Paper Update End######
 
-    ######Spigot Update Start######
     if [[ $@ =~ "spigot" ]]; then
         buildSpigot
     fi
-    ######Plugin Update Start######
+
+    if [[ $@ =~ 'mojang' ]]; then
+        buildMojang
+    fi
     if [[ $@ =~ "mtvehicles" ]]; then
         isPlugin=true
         pluginUpdate MTVehicles
@@ -468,10 +522,28 @@ function startMinecraft(){
         else
             java -jar Paper-latest.jar
         fi
+    elif [[ $@ =~ 'mojang' ]]; then
+        if [ -f ${serverPath}/server.jar ]; then
+            mv ${serverPath}/server.jar ${serverPath}/Minecraft-latest.jar
+        fi
+        cd ${serverPath}
+        if [[ $@ =~ 'd' ]]; then
+            screenName='minecraft' screenCommand='java -jar Minecraft-latest.jar nogui' createScreen
+        else
+            java -jar Minecraft-latest.jar
+        fi
     fi
 }
 
 ######Function End######
+if [[ $@ =~ 'install' ]]; then
+    installScript
+    exit 0
+fi
+if [[ $@ =~ 'autostart' ]]; then
+    createStartupService $@
+    exit 0
+fi
 echo "[Info] Hello! `whoami` at `date`"
 checkBit
 echo "[Info] Reading settings"
@@ -494,5 +566,9 @@ if [[ $@ =~ clean ]]; then
 fi
 
 if [[ $@ =~ startminecraft ]]; then
-    startMinecraft $@
+    if [[ $@ = 'unattended' ]]; then
+        startMinecraft $@ d
+    else
+        startMinecraft $@
+    fi
 fi

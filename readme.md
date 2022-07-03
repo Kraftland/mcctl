@@ -52,6 +52,33 @@ version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh start paper d
 | spigot | Start SpigotMC                                              |
 | d      | Run Minecraft in screen sockets. (Require screen installed) |
 
+## Install script as a command `mcmt`
+
+- Type `install` flag.
+
+## Let server start at boot
+
+First type `autostart` flag.
+
+**Notice: Require script installed at`/usr/bin/mcmt`**
+
+Example:
+
+```bash
+version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh autostart start paper d
+```
+
+Equals to
+
+```systemd
+[Unit]
+Description=minecraft-server-maintainer's start module
+[Service]
+ExecStart=env version=1.19 serverPath=/mnt/main/Cache/Paper mcmt start paper d
+[Install]
+WantedBy=multi-user.target
+```
+
 ## Install requirements
 
 | Flags   | Effects              |
