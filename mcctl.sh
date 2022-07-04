@@ -6,8 +6,9 @@ log_error='~/mcctl_debug.log'
 ######Function Start######
 #Merge BuildTools log to script log
 function mergeBuildToolsLog(){
-    echo '[Info] printing BuildTools log'
+    echo '[Info] BuildTools log start'
     cat BuildTools.log.txt
+    echo '[Info] BuildTools log end'
 }
 
 #Print copyright
