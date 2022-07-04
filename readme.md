@@ -111,8 +111,8 @@ serverPath=/mnt/main/Cache/Paper
 
 ## How to update my `mcmt` command?
 
-Just type `mcmt install`, the script will handle it automatically
+Just type `mcmt install` again, script will handle it automatically
 
-## Script throws a error code
+## Script throws an error code
 
 Script have a built-in debug system, it will automatically detect error code and give possible solutions. Don't panic and follow instructions
