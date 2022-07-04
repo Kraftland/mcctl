@@ -1,6 +1,20 @@
 #!/bin/bash
 
+log='~/mcctl.log'
+log_error='~/mcctl_debug.log'
+
 ######Function Start######
+#Merge BuildTools log to script log
+function mergeBuildToolsLog(){
+    echo '[Info] printing BuildTools log'
+    cat BuildTools.log.txt
+}
+
+#Print copyright
+function printCopyright(){
+    echo '[Info] This script is written by Kimiblock.'
+}
+
 #removeScript
 function uninstallService(){
     checkServiceFileInstalled
@@ -169,7 +183,7 @@ function cleanFile(){
     fi
     if [[ $@ =~ 'log' ]]; then
         echo '[Info] Cleaning logs'
-        for logFiles in 'debug.log' 'BuildTools.log.txt' 'wget-log' 'updater.log'; do
+        for logFiles in 'mcctl.log' 'BuildTools.log.txt' 'wget-log' 'mcctl_debug.log'; do
             rm -f ${logFiles}
         done
         unset logFiles
@@ -492,7 +506,7 @@ function buildPaper(){
 
 #32-bit Warning
 function checkBit(){
-    getconf LONG_BIT
+    getconf LONG_BIT >/dev/null 2>/dev/null
     return $?
     if [ $? = 64 ]; then
         echo "[Info] Running on 64-bit system."
@@ -620,9 +634,11 @@ function startMinecraft(){
 ######Function End######
 if [[ ! $@ ]]; then
     echo "[Info] Hello! `whoami` at `date`"
+    printCopyright
     exit 0
 fi
 echo "[Info] Hello! `whoami` at `date`"
+printCopyright
 checkBit
 echo "[Info] Reading settings"
 clean 1>/dev/null 2>/dev/null
@@ -643,7 +659,8 @@ if [[ $@ =~ "instreq" ]]; then
 fi
 if [[ $@ =~ update ]]; then
     if [[ $@ =~ "unattended" ]]; then
-        updateMain $@ -nosudo 1>> updater.log 2>>debug.log
+        updateMain $@ -nosudo 1>>${log} 2>>${log_error}
+        mergeBuildToolsLog
     else
         updateMain $@
     fi
