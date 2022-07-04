@@ -1,17 +1,64 @@
 #!/bin/bash
 
 ######Function Start######
+#removeScript
+function uninstallService(){
+    checkServiceFileInstalled
+    if [ ${service} = enabled ]; then
+        sudo systemctl disable --now mcctl.service
+        sudo rm -rf /etc/systemd/system/mcctl.service
+    elif [ ${service} = disabled ]; then
+        sudo rm -rf /etc/systemd/system/mcctl.service
+    else
+        echo '[Warn] mcctl.service doesnt exist'
+    fi
+}
+
+#Check installed
+function checkScriptInstalled(){
+    echo '[Info] Checking if you have mcctl installed'
+    if [ -f /usr/bin/mcctl ]; then
+        echo '[Info] mcctl detected and installed'
+    else
+        echo '[Info] mcctl missing, press Enter to install or any other key to abort'
+        unset confirm
+        read confirm
+        if [ ! ${confirm} ]; then
+            installScript
+        else
+            exitScript 13
+        fi
+    fi
+}
+
+#Check service file installed
+function checkServiceFileInstalled(){
+    echo '[Info] Checking if you have mcctl service installed'
+    if [ -f /etc/systemd/system/mcctl.service ]; then
+        echo '[Info] mcctl service detected and start at boot disabled'
+        service=disabled
+    elif [ -f /etc/systemd/system/multi-user.target.wants/mcctl.service ]; then
+        echo '[Info] mcctl service detected and start at boot enabled'
+        service=enabled
+    else
+        echo '[Info] mcctl service missing'
+        service=no
+    fi
+}
+
+
 #Install script
 function installScript(){
     echo '[Info] Downloading script'
-    git clone https://github.com/Kimiblock/minecraft-server-maintainer.git 2>/dev/null 1>/dev/null
+    rm -rf mcctl 2>/dev/null
+    git clone https://github.com/Kimiblock/mcctl.git 2>/dev/null 1>/dev/null
     if [ ! $? = 0 ]; then
         exitScript 11
     fi
     echo '[Info] Installing script, asking root permission'
     pathPrevious=`pwd`
-    cd minecraft-server-maintainer
-    mv Main.sh mcctl
+    cd mcctl
+    mv mcctl.sh mcctl
     sudo mv mcctl /usr/bin
     if [ ! $? = 0 ]; then
         exitScript 12
@@ -21,8 +68,16 @@ function installScript(){
         exitScript 12
     fi
     cd ${pathPrevious}
-    rm -rf minecraft-server-maintainer
+    rm -rf mcctl
     echo '[Info] Script installed'
+}
+
+#Uninstall script
+function uninstallScript(){
+    echo '[Info] Uninstalling mcctl from your system'
+    sudo rm -rf /usr/bin/mcctl
+    echo '[Info] Uninstalled mcctl from your system'
+
 }
 
 #Create service file
@@ -32,7 +87,7 @@ function createStartupService(){
     echo '[Info] Creating service file'
     echo """
 [Unit]
-Description=minecraft-server-maintainer's start module
+Description=minecraft-server-control's start module
 [Service]
 ExecStart=env version=${version} serverPath=${serverPath} mcctl ${flags}
 [Install]
@@ -153,6 +208,8 @@ function exitScript(){
             sign='Network unrechable'
         elif [[ $@ = 12 ]]; then
             sign='Permission denied'
+        elif [[ $@ = 13 ]]; then
+            sign='User cancelled'
         elif [[ ! $@ ]]; then
             sign='Internal error'
         else
@@ -574,6 +631,9 @@ if [[ $@ =~ 'install' ]]; then
     installScript
     exit 0
 fi
+if [[ $@ =~ 'uninstall' ]]; then
+    uninstallScript
+    uninstallService
 if [[ $@ =~ 'autostart' ]]; then
     createStartupService $@
     exit 0

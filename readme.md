@@ -38,6 +38,10 @@ version=1.19 serverPath=/mnt/main/Cache/Paper zsh mcctl.sh update spigot sac gey
 | nosudo       | Do not use sudo for system update.                                          |
 | clean        | Clean leftovers.                                                            |
 
+## Uninstall script and service
+
+- Type `uninstall` flag to uninstall
+
 ## Start server (Experimental)
 
 ***<u><mark>Notice: Type <code>start</code> flag to enable start server feature.</mark></u>***
