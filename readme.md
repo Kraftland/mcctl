@@ -2,7 +2,7 @@
 
 ---
 
-minecraft-server-maintainer (aka mcmt) is a bash script that can automatically maintain your Minecraft server.# Usage
+mcctl (aka minecraft-server-control) is a bash script that can automatically maintain your Minecraft server.# Usage
 
 ```bash
 [Environment Variables] zsh /Path/to/your/script.sh [Flags]
@@ -10,7 +10,7 @@ minecraft-server-maintainer (aka mcmt) is a bash script that can automatically m
 
 # Flags
 
-## Install script as a command `mcmt` (Recommended)
+## Install script as a command `mcctl` (Recommended)
 
 - Type `install` flag.
 
@@ -21,7 +21,7 @@ minecraft-server-maintainer (aka mcmt) is a bash script that can automatically m
 Examples:
 
 ```bash
-version=1.19 serverPath=/mnt/main/Cache/Paper zsh Main.sh update spigot sac geyser floodgate
+version=1.19 serverPath=/mnt/main/Cache/Paper zsh mcctl.sh update spigot sac geyser floodgate
 ```
 
 | Flags        | Effects                                                                     |
@@ -45,7 +45,7 @@ version=1.19 serverPath=/mnt/main/Cache/Paper zsh Main.sh update spigot sac geys
 Examples:
 
 ```bash
-version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh start paper d
+version=1.19 serverPath=/mnt/main/Cache/Paper bash mcctl.sh start paper d
 ```
 
 | Flags  | Effects                                                     |
@@ -54,18 +54,16 @@ version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh start paper d
 | spigot | Start SpigotMC                                              |
 | d      | Run Minecraft in screen sockets. (Require screen installed) |
 
-
-
 ## Load Minecraft server on startup
 
 First type `autostart` flag.
 
-**Notice: Require script installed at`/usr/bin/mcmt`**
+**Notice: Require script installed at`/usr/bin/mcctl`**
 
 Example:
 
 ```bash
-version=1.19 serverPath=/mnt/main/Cache/Paper bash Main.sh autostart start paper d
+version=1.19 serverPath=/mnt/main/Cache/Paper bash mcctl.sh autostart start paper d
 ```
 
 Equals to
@@ -74,7 +72,7 @@ Equals to
 [Unit]
 Description=minecraft-server-maintainer's start module
 [Service]
-ExecStart=env version=1.19 serverPath=/mnt/main/Cache/Paper mcmt start paper d
+ExecStart=env version=1.19 serverPath=/mnt/main/Cache/Paper mcctl start paper d
 [Install]
 WantedBy=multi-user.target
 ```

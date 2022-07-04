@@ -11,12 +11,12 @@ function installScript(){
     echo '[Info] Installing script, asking root permission'
     pathPrevious=`pwd`
     cd minecraft-server-maintainer
-    mv Main.sh mcmt
-    sudo mv mcmt /usr/bin
+    mv Main.sh mcctl
+    sudo mv mcctl /usr/bin
     if [ ! $? = 0 ]; then
         exitScript 12
     fi
-    sudo chmod +x /usr/bin/mcmt
+    sudo chmod +x /usr/bin/mcctl
     if [ ! $? = 0 ]; then
         exitScript 12
     fi
@@ -34,21 +34,21 @@ function createStartupService(){
 [Unit]
 Description=minecraft-server-maintainer's start module
 [Service]
-ExecStart=env version=${version} serverPath=${serverPath} mcmt ${flags}
+ExecStart=env version=${version} serverPath=${serverPath} mcctl ${flags}
 [Install]
 WantedBy=multi-user.target
-    """ >mcmt.service
+    """ >mcctl.service
     sleep 3s
     if [ ! ${EDITOR} ]; then
-        nano mcmt.service
+        nano mcctl.service
     else
-        ${EDITOR} mcmt.service
+        ${EDITOR} mcctl.service
     fi
     echo "[Info] Type 'Confirm' to confirm or any other key to cancel"
     read checkConfirm
     if [ ${checkConfirm} = 'Confirm' ]; then
-        sudo mv mcmt.service /etc/systemd/system/
-        sudo systemctl enable mcmt
+        sudo mv mcctl.service /etc/systemd/system/
+        sudo systemctl enable mcctl.service
     else
         echo '[Info] Cancelled'
     fi
