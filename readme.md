@@ -1,4 +1,4 @@
-# minecraft-server-maintainer
+# minecraft-server-control
 
 ---
 
