@@ -38,6 +38,7 @@ ExecStart=env version=${version} serverPath=${serverPath} mcmt ${flags}
 [Install]
 WantedBy=multi-user.target
     """ >mcmt.service
+    sleep 3s
     if [ ! ${EDITOR} ]; then
         nano mcmt.service
     else
@@ -567,7 +568,7 @@ fi
 echo "[Info] Hello! `whoami` at `date`"
 checkBit
 echo "[Info] Reading settings"
-clean
+clean 1>/dev/null 2>/dev/null
 checkConfig
 if [[ $@ =~ 'install' ]]; then
     installScript
