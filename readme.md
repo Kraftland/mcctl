@@ -40,7 +40,7 @@ version=1.19 serverPath=/mnt/main/Cache/Paper zsh mcctl.sh update spigot sac gey
 
 ## Uninstall script and service
 
-- Type `uninstall` flag to uninstall
+- Type `mcctl remove` to uninstall
 
 ## Start server (Experimental)
 

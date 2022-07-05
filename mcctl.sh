@@ -141,7 +141,7 @@ function checkSystemd(){
 function installRequirements(){
     echo '[Info] Installing requirements'
     detectPackageManager
-    if [ ${packageManager}= 'pacman' ]; then
+    if [ ${packageManager} = 'pacman' ]; then
         sudo pacman -S jre-openjdk-headless screen wget --noconfirm --needed
     elif [ ${packageManager} = 'apt' ]; then
         sudo apt install -y default-jdk screen wget
@@ -650,7 +650,7 @@ if [[ $@ =~ 'install' ]]; then
     installScript
     exit 0
 fi
-if [[ $@ =~ 'uninstall' ]]; then
+if [[ $@ =~ 'remove' ]]; then
     uninstallScript
     uninstallService
 fi
