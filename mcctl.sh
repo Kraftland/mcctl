@@ -297,7 +297,8 @@ function buildSpigot(){
     url="https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
     checkFile='BuildTools.jar'
     echo "[Info] Downloading BuildTools for Spigot..."
-    wget ${url} >/dev/null 2>/dev/null
+    curl -O ${url} >/dev/null
+    echo "[Info] Running BuildTools.jar"
     java -jar $checkFile nogui --rev ${version} >/dev/null 2>/dev/null
     if [ ! $? = 0 ]; then
         exitScript 6
@@ -661,7 +662,7 @@ fi
 if [[ $@ =~ "instreq" ]]; then
     installRequirements $@
 fi
-if [[ $@ =~ update ]]; then
+if [[ $@ =~ 'update' ]]; then
     if [[ $@ =~ "unattended" ]]; then
         updateMain $@ -nosudo 1>>${log} 2>>${log_error}
         mergeBuildToolsLog
