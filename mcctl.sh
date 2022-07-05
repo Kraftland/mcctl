@@ -84,7 +84,7 @@ function installScript(){
     fi
     cd ${pathPrevious}
     rm -rf mcctl
-    echo '[Info] Script installed'
+    echo '[Info] Script installed and updated'
 }
 
 #Uninstall script
@@ -287,7 +287,7 @@ function buildMojang(){
     if [ ${version} = 1.19 ]; then
         url=https://launcher.mojang.com/v1/objects/e00c4052dac1d59a1188b2aa9d5a87113aaf1122/server.jar
     fi
-    wget ${url} >/dev/null 2>/dev/null
+    curl -O ${url}
     mv server.jar Minecraft-latest.jar
     update Minecraft-latest.jar
 }
@@ -297,7 +297,7 @@ function buildSpigot(){
     url="https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
     checkFile='BuildTools.jar'
     echo "[Info] Downloading BuildTools for Spigot..."
-    curl -O ${url} >/dev/null
+    curl -O ${url}
     echo "[Info] Running BuildTools.jar"
     java -jar $checkFile nogui --rev ${version} >/dev/null 2>/dev/null
     if [ ! $? = 0 ]; then
@@ -391,25 +391,36 @@ function integrityProtect(){
         return 0
     else
         echo "[Info] Verifing ${checkFile}"
-        if [ ${isPlugin} = false ]; then
-            checkFile=Paper-latest.jar
-            wget $url >/dev/null 2>/dev/null
-            mv paper-*.jar Paper-latest.jar.check
-            diff -q Paper-latest.jar.check Paper-latest.jar >/dev/null 2>/dev/null
-            return $?
-        else
-            mv $checkFile "${checkFile}.check"
-            wget $url >/dev/null 2>/dev/null
-            diff -q $checkFile "${checkFile}.check" >/dev/null 2>/dev/null
-            return $?
+        #if [ ${isPlugin} = false ]; then
+        #    checkFile=Paper-latest.jar
+        #    wget $url >/dev/null 2>/dev/null
+        #    mv paper-*.jar Paper-latest.jar.check
+        #    diff -q Paper-latest.jar.check Paper-latest.jar >/dev/null 2>/dev/null
+        #    return $?
+        #else
+        #    mv $checkFile "${checkFile}.check"
+        #    wget $url >/dev/null 2>/dev/null
+        #    diff -q $checkFile "${checkFile}.check" >/dev/null 2>/dev/null
+        #    return $?
+        #fi
+        mv ${checkFile} ${checkFile}.check
+        wget ${url} >/dev/null 2>/dev/null
+        if [ -f paper-*.jar ]; then
+            mv paper-*.jar Paper-latest.jar
+        elif [ -f server*.jar ]; then
+            mv server.jar Minecraft-latest.jar
+        elif [ -f SoaromaSAC-*.jar ]; then
+            mv SoaromaSAC-*.jar SoaromaSAC.jar
         fi
+        diff -q ${checkFile} ${checkFile}.check
+        different=$?
     fi
-    if [ $? = 1 ]; then
+    if [ ${different} = 1 ]; then
         echo "[Warn] Checking job done, repairing ${checkFile}."
         redownload
-    else
+    elif [ $@ = 0 ]; then
         echo "[Info] Ckecking job done, ${ckeckFile} verified."
-        clean
+        rm -rf *.check
     fi
 }
 function redownload(){
@@ -435,10 +446,10 @@ function pluginUpdate(){
         url="https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/lastSuccessfulBuild/artifact/bootstrap/spigot/target/Geyser-Spigot.jar"
     elif [ $@ = SAC ]; then
         pluginName="$@"
-        url="https://www.spigotmc.org/resources/soaromasac-lightweight-cheat-detection-system.87702/download?version=455200"
+        url="https://www.spigotmc.org/resources/soaromasac-lightweight-cheat-detection-system.87702/download?version=458883"
     elif [ $@ = MTVehicles ]; then
         pluginName="$@"
-        url="https://www.spigotmc.org/resources/mtvehicles-vehicle-plugin-free-downloadable.80910/download?version=452759"
+        url="https://www.spigotmc.org/resources/mtvehicles-vehicle-plugin-free-downloadable.80910/download?version=456797"
     else
         echo "[Warn] Sorry, but we don't have your plugin's download url. Please wait for support~"
     fi
@@ -555,7 +566,7 @@ function updateMain(){
         export checkFile='Geyser-Spigot.jar'
         integrityProtect
         versionCompare
-        update *.jar
+        update Geyser-Spigot.jar
         clean
     fi
 
@@ -565,7 +576,7 @@ function updateMain(){
         pluginUpdate Floodgate
         integrityProtect
         versionCompare
-        update *.jar
+        update floodgate-spigot.jar
         clean
     fi
 
