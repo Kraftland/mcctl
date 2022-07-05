@@ -570,9 +570,11 @@ function updateMain(){
 
     if [[ $@ =~ "sac" ]]; then
         echo "[Warn] Warning! Beta support for SoaromaSAC"
+        pluginUpdate SAC
+        mv SoaromaSAC-*.jar SoaromaSAC.jar
         isPlugin=true
         unset checkFile
-        update *.jar
+        update SoaromaSAC.jar
     fi
 
 
