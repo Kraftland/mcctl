@@ -653,6 +653,7 @@ fi
 if [[ $@ =~ 'uninstall' ]]; then
     uninstallScript
     uninstallService
+fi
 if [[ $@ =~ 'autostart' ]]; then
     createStartupService $@
     exit 0
