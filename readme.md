@@ -1,30 +1,42 @@
-# minecraft-server-control
+# mcctl
 
 ---
 
-mcctl (aka minecraft-server-control) is a bash script that can automatically maintain your Minecraft server.# Usage
+`mcctl` (aka minecraft-server-sontrol) is a bash script which can automatically run and update your minecraft server.
+
+# Usage
 
 ```bash
-[Environment Variables] zsh /Path/to/your/script.sh [Flags]
+[Environment Variables] mcctl [Options]
 ```
-
-# Flags
-
-## Install script as a command `mcctl` (Recommended)
-
-- Type `install` flag.
-
-## Update
-
-***<u><mark>Notice: Type `update` flag to enable update feature.</mark></u>***
 
 Examples:
 
 ```bash
-version=1.19 serverPath=/mnt/main/Cache/Paper zsh mcctl.sh update spigot sac geyser floodgate
+version=1.19 serverPath=/mnt/main/Cache/Paper zsh mcctl.sh update spigot paper sac geyser floodgate
 ```
 
-| Flags        | Effects                                                                     |
+## Install mcctl as a system command (Not required)
+
+Note: If you haven't installed mcctl to your system, just replace `mcctl` with `./mcctl.sh`
+
+```bash
+git clone https://github.com/Kimiblock/mcctl.git && cd mcctl && ./mcctl.sh -install
+```
+
+## Uninstall mcctl command
+
+```bash
+mcctl -remove
+```
+
+## Update your Minecraft server and plugins
+
+```bash
+mcctl -update [options]
+```
+
+| Options      | Effects                                                                     |
 | ------------ | --------------------------------------------------------------------------- |
 | spigot       | Update spigot.                                                              |
 | paper        | Update paper.                                                               |
@@ -38,81 +50,80 @@ version=1.19 serverPath=/mnt/main/Cache/Paper zsh mcctl.sh update spigot sac gey
 | nosudo       | Do not use sudo for system update.                                          |
 | clean        | Clean leftovers.                                                            |
 
-## Uninstall script and service
-
-- Type `mcctl remove` to uninstall
-
-## Start server (Experimental)
-
-***<u><mark>Notice: Type <code>start</code> flag to enable start server feature.</mark></u>***
-
-Examples:
+## Load server at startup
 
 ```bash
-version=1.19 serverPath=/mnt/main/Cache/Paper bash mcctl.sh start paper d
+[Environment Variables] mcctl -start -[server name] -d
 ```
 
-| Flags  | Effects                                                     |
-| ------ | ----------------------------------------------------------- |
-| paper  | Start PaperMC                                               |
-| spigot | Start SpigotMC                                              |
-| d      | Run Minecraft in screen sockets. (Require screen installed) |
+| Server name | Effects        |
+| ----------- | -------------- |
+| paper       | Start PaperMC  |
+| spigot      | Start SpigotMC |
 
-## Load Minecraft server on startup
+Note: Install `screen` if you add -d, you can go back to your server session by `screen -r mc`.
 
-First type `autostart` flag.
+## Install requirements (Currently in beta, only pacman recives full support)
 
-**Notice: Require script installed at`/usr/bin/mcctl`**
-
-Example:
-
-```bash
-version=1.19 serverPath=/mnt/main/Cache/Paper bash mcctl.sh autostart start paper d
-```
-
-Equals to
-
-```systemd
-[Unit]
-Description=minecraft-server-maintainer's start module
-[Service]
-ExecStart=env version=1.19 serverPath=/mnt/main/Cache/Paper mcctl start paper d
-[Install]
-WantedBy=multi-user.target
-```
-
-## Install requirements
-
-| Flags   | Effects              |
+| Options | Effects              |
 | ------- | -------------------- |
 | instreq | Install requirements |
 
-# Environment Variables
 
-| Variables  | Effects                               |
-| ---------- | ------------------------------------- |
-| version    | Define your Minecraft server version. |
-| serverPath | Define your server path.              |
 
 # Tips and tricks
 
-## How to set environment variables permanently?
-
-Edit your `/etc/environment`
-
-type your environment variables as KEY=PAL
-
-Examples:
+## Delete Spigot BuildTools' cache and script's logs
 
 ```bash
-version=1.19
-serverPath=/mnt/main/Cache/Paper
+mcctl -clean
 ```
 
-## How to update my `mcmt` command?
+## Bypass entering environment variables
 
-Just type `mcmt install` again, script will handle it automatically
+Edit `/etc/environment`, add those lines:
 
-## Script throws an error code
+```/etc/environment
+version=Your version
+serverPath=Your path to server
+```
 
-Script have a built-in debug system, it will automatically detect error code and give possible solutions. Don't panic and follow instructions
+Then reboot or re-login
+
+## Update `mcmt` command?
+
+Just type `mcmt install` again, script will download the latest version of itself and perform updates.
+
+
+
+## Update server everyday?
+
+Get the cronie package and enable `cronie.service`.
+
+Type `crontab -e` and enter those line:
+
+```
+0 0 * * * mcctl [Options]
+```
+
+Check if you have environment variables set, either in `/etc/environment` or before `mcctl`
+
+Don't forget to add a `-unattended` option or you won't be able to inspect any output from script
+
+***<u><mark>Warning: you have to manually restart the server, otherwise some plugins WON'T use new features.</mark></u>***
+
+## How to create a entirely new server?
+
+Just add a `newserver` option, script will automatically handle it.
+
+# To-dos
+
+1. ~~Save configurations to `~/.config`.~~
+
+2. Automatically detect what plugins you installed.
+
+# Known bugs
+
+- Spigot's own build tools may occationally crash, `mcctl -clean` might fix it.
+
+- Do not use `manjaro-zsh-config-git` in aur or you might experience screen problems.
