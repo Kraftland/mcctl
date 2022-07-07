@@ -6,6 +6,8 @@
 
 # Usage
 
+Notice: First set environment variables: serverPath and version.
+
 ```bash
 [Environment Variables] mcctl [Options]
 ```
