@@ -6,11 +6,13 @@
 
 # Usage
 
-Notice: First set environment variables: serverPath and version.
+First set 2 environment variables: version and serverPath. This will tell mcctl your desired version and path to your server 
 
 ```bash
 [Environment Variables] mcctl [Options]
 ```
+
+
 
 Examples:
 
@@ -34,23 +36,33 @@ mcctl -remove
 
 ## Update your Minecraft server and plugins
 
+### Automatically
+
+Tip: Now you can let mcctl automatically detect servers and plugins to install, just type:
+
+```bash
+mcctl -update -autodetect
+```
+
+### Manually
+
 ```bash
 mcctl -update [options]
 ```
 
-| Options      | Effects                                                                     |
-| ------------ | --------------------------------------------------------------------------- |
-| spigot       | Update spigot.                                                              |
-| paper        | Update paper.                                                               |
-| sac          | Update sac (Beta support)                                                   |
-| floodgate    | Update floodgate.                                                           |
-| geyser       | Update geyser.                                                              |
-| systemupdate | Fully update your system. ( Run with `sudo` when `-unattended` activated! ) |
-| unsafe       | Disable default protecting.                                                 |
-| outtolog     | Redirect output to several log files.                                       |
-| newserver    | Automatically create server folder.                                         |
-| nosudo       | Do not use sudo for system update.                                          |
-| clean        | Clean leftovers.                                                            |
+| Options                | Effects                                                                     |
+| ---------------------- | --------------------------------------------------------------------------- |
+| spigot                 | Update spigot.                                                              |
+| paper                  | Update paper.                                                               |
+| sac (Currently broken) | Update sac (Beta support)                                                   |
+| floodgate              | Update floodgate.                                                           |
+| geyser                 | Update geyser.                                                              |
+| systemupdate           | Fully update your system. ( Run with `sudo` when `-unattended` activated! ) |
+| unsafe                 | Disable default protecting.                                                 |
+| outtolog               | Redirect output to several log files.                                       |
+| newserver              | Automatically create server folder.                                         |
+| nosudo                 | Do not use sudo for system update.                                          |
+| clean                  | Clean leftovers.                                                            |
 
 ## Load server at startup
 
@@ -70,8 +82,6 @@ Note: Install `screen` if you add -d, you can go back to your server session by 
 | Options | Effects              |
 | ------- | -------------------- |
 | instreq | Install requirements |
-
-
 
 # Tips and tricks
 
@@ -95,8 +105,6 @@ Then reboot or re-login
 ## Update `mcmt` command?
 
 Just type `mcmt install` again, script will download the latest version of itself and perform updates.
-
-
 
 ## Update server everyday?
 
@@ -129,3 +137,5 @@ Just add a `newserver` option, script will automatically handle it.
 - Spigot's own build tools may occationally crash, `mcctl -clean` might fix it.
 
 - Do not use `manjaro-zsh-config-git` in aur or you might experience screen problems.
+
+- Can't download sac due to spigotmc.org's unique protection

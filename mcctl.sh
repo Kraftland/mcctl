@@ -4,11 +4,73 @@ log='~/mcctl.log'
 log_error='~/mcctl_debug.log'
 
 ######Function Start######
+#Detect installed files
+function detectInstalledFiles(){
+    for env in paperInstalled mojangInstalled spigotInstalled floodgateInstalled geyserInstalled mtvehiclesInstalled sacInstalled huskhomesInstalled; do
+        unset ${env}
+    done
+    unset env
+    if [ -f ${serverPath}/paper-*.jar ]; then
+        paperInstalled=true
+        mv ${serverPath}/paper-*.jar ${serverPath}/Paper-latest.jar
+        updateFlags="${updateFlags} paper"
+    elif [ -f ${serverPath}/Paper-latest.jar ]; then
+        paperInstalled=true
+        updateFlags="${updateFlags} paper"
+    fi
+    if [ -f ${serverPath}/server.jar ]; then
+        mojangInstalled=true
+        mv ${serverPath}/server.jar ${serverPath}/Minecraft-latest.jar
+        updateFlags="${updateFlags} mojang"
+    elif [ -f ${serverPath}/Minecraft-latest.jar ]; then
+        mojangInstalled=true
+        updateFlags="${updateFlags} mojang"
+    fi
+    if [ -f ${serverPath}/Spigot-latest.jar ]; then
+        spigotInstalled=true
+        updateFlags="${updateFlags} spigot"
+    elif [ -f ${serverPath}/spigot-*.jar ]; then
+        spigotInstalled=true
+        mv ${serverPath}/spigot-*.jar ${serverPath}/Spigot-latest.jar
+        updateFlags="${updateFlags} spigot"
+    fi
+    if [ -f ${serverPath}/plugins/floodgate-spigot.jar ]; then
+        floodgateInstalled=true
+        updateFlags="${updateFlags} floodgate"
+    fi
+    if [ -f ${serverPath}/plugins/Geyser-Spigot.jar ]; then
+        geyserInstalled=true
+        updateFlags="${updateFlags} geyser"
+    fi
+    if [ -f ${serverPath}/plugins/MTVehicles.jar ]; then
+        mtvehiclesInstalled=true
+        updateFlags="${updateFlags} mtvehicles"
+    fi
+    if [ -f ${serverPath}/plugins/SoaromaSAC*.jar ]; then
+        mv ${serverPath}/plugins/SoaromaSAC*.jar ${serverPath}/plugins/SoaromaSAC.jar
+        sacInstalled=true
+        updateFlags="${updateFlags} sac"
+    fi
+    if [ -f ${serverPath}/plugins/HuskHomes*.jar ]; then
+        mv ${serverPath}/plugins/HuskHomes*.jar ${serverPath}/plugins/HuskHomes.jar
+        huskhomesInstalled=true
+        updateFlags="${updateFlags} huskhomes"
+    fi
+    if [ ${paperInstalled} = true ]; then
+        echo "[Info] Paper detected"
+    elif [ ${spigotInstalled} = true ]; then
+        echo "[Info] Spigot detected"
+    elif [ ${mojangInstalled} = true ]; then
+        echo "[Info] Mojang server detected"
+    fi
+}
+
 #Merge BuildTools log to script log
 function mergeBuildToolsLog(){
     echo '[Info] BuildTools log start'
     cat BuildTools.log.txt
     echo '[Info] BuildTools log end'
+    rm -f BuildTools.log.txt
 }
 
 #Print copyright
@@ -25,7 +87,7 @@ function uninstallService(){
     elif [ ${service} = disabled ]; then
         sudo rm -rf /etc/systemd/system/mcctl.service
     else
-        echo '[Warn] mcctl.service doesnt exist'
+        echo "[Warn] mcctl.service doesn't exist"
     fi
 }
 
@@ -674,11 +736,21 @@ if [[ $@ =~ "instreq" ]]; then
     installRequirements $@
 fi
 if [[ $@ =~ 'update' ]]; then
-    if [[ $@ =~ "unattended" ]]; then
-        updateMain $@ -nosudo 1>>${log} 2>>${log_error}
-        mergeBuildToolsLog
+    if [[ $@ =~ autodetect ]]; then
+    detectInstalledFiles
+        if [[ $@ =~ "unattended" ]]; then
+            updateMain $@ -nosudo ${updateFlags} 1>>${log} 2>>${log_error}
+            mergeBuildToolsLog
+        else
+            updateMain $@ ${updateFlags}
+        fi
     else
-        updateMain $@
+        if [[ $@ =~ "unattended" ]]; then
+            updateMain $@ -nosudo 1>>${log} 2>>${log_error}
+            mergeBuildToolsLog
+        else
+            updateMain $@
+        fi
     fi
 fi
 
