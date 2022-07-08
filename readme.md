@@ -2,22 +2,20 @@
 
 ---
 
-`mcctl` (aka minecraft-server-sontrol) is a bash script which can automatically run and update your minecraft server.
+`mcctl` (aka minecraft-server-control) is a bash script which can automatically run and update your minecraft server.
 
 # Usage
 
-First set 2 environment variables: version and serverPath. This will tell mcctl your desired version and path to your server 
+First set 2 environment variables: `$version` and `$serverPath`. This will tell mcctl your desired version and path to your server 
 
 ```bash
 [Environment Variables] mcctl [Options]
 ```
 
-
-
 Examples:
 
 ```bash
-version=1.19 serverPath=/mnt/main/Cache/Paper zsh mcctl.sh update spigot paper sac geyser floodgate
+version=1.19 serverPath=/mnt/main/Cache/Paper bash mcctl.sh -update -autodetect
 ```
 
 ## Install mcctl as a system command (Not required)
@@ -50,19 +48,19 @@ mcctl -update -autodetect
 mcctl -update [options]
 ```
 
-| Options                | Effects                                                                     |
-| ---------------------- | --------------------------------------------------------------------------- |
-| spigot                 | Update spigot.                                                              |
-| paper                  | Update paper.                                                               |
-| sac (Currently broken) | Update sac (Beta support)                                                   |
-| floodgate              | Update floodgate.                                                           |
-| geyser                 | Update geyser.                                                              |
-| systemupdate           | Fully update your system. ( Run with `sudo` when `-unattended` activated! ) |
-| unsafe                 | Disable default protecting.                                                 |
-| outtolog               | Redirect output to several log files.                                       |
-| newserver              | Automatically create server folder.                                         |
-| nosudo                 | Do not use sudo for system update.                                          |
-| clean                  | Clean leftovers.                                                            |
+| Options                    | Effects                                                                     |
+| -------------------------- | --------------------------------------------------------------------------- |
+| spigot                     | Update spigot.                                                              |
+| paper                      | Update paper.                                                               |
+| ~~sac~~ (Currently broken) | ~~Update sac.~~                                                             |
+| floodgate                  | Update floodgate.                                                           |
+| geyser                     | Update geyser.                                                              |
+| systemupdate               | Fully update your system. ( Run with `sudo` when `-unattended` activated! ) |
+| unsafe                     | Disable default protecting.                                                 |
+| outtolog                   | Redirect output to several log files.                                       |
+| newserver                  | Automatically create server folder.                                         |
+| nosudo                     | Do not use sudo for system update.                                          |
+| clean                      | Clean leftovers.                                                            |
 
 ## Load server at startup
 
@@ -130,12 +128,10 @@ Just add a `newserver` option, script will automatically handle it.
 
 1. ~~Save configurations to `~/.config`.~~
 
-2. Automatically detect what plugins you installed.
-
 # Known bugs
 
 - Spigot's own build tools may occationally crash, `mcctl -clean` might fix it.
 
-- Do not use `manjaro-zsh-config-git` in aur or you might experience screen problems.
+- Do not use `manjaro-zsh-config-git` or any other similar package or you might experience screen problems. If you have to use those zsh plugins, change your default shell to bash `chsh -s /bin/bash`
 
 - Can't download sac due to spigotmc.org's unique protection
