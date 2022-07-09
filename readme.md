@@ -65,7 +65,7 @@ mcctl -update [options]
 ## Load server at startup
 
 ```bash
-[Environment Variables] mcctl -start -[server name] -d
+[Environment Variables] mcctl -start -[Server name] -d
 ```
 
 | Server name | Effects        |
@@ -75,7 +75,15 @@ mcctl -update [options]
 
 Note: Install `screen` if you add -d, you can go back to your server session by `screen -r mc`.
 
-## Install requirements (Currently in beta, only pacman recives full support)
+## Save your options and environments
+
+```bash
+[Environment Variables] mcctl --save-conf [Options]
+```
+
+Next time you use `mcctl`, just type `mcctl`. Script will automatically remember your options.
+
+## Install requirements (Currently in beta, only pacman and apt recives full support)
 
 | Options | Effects              |
 | ------- | -------------------- |
@@ -91,6 +99,8 @@ mcctl -clean
 
 ## Bypass entering environment variables
 
+### Method 1
+
 Edit `/etc/environment`, add those lines:
 
 ```/etc/environment
@@ -99,6 +109,16 @@ serverPath=Your path to server
 ```
 
 Then reboot or re-login
+
+### Method 2
+
+`cd` to your server
+
+```bash
+mcctl --currentdirectory --latest [options]
+```
+
+This will set server path to your current folder and default to the latest version.
 
 ## Update `mcmt` command?
 

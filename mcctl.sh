@@ -4,6 +4,43 @@ log='~/mcctl.log'
 log_error='~/mcctl_debug.log'
 
 ######Function Start######
+#Read configurations from  >~/.config/mcctl/mcctl.conf
+function readConf(){
+    if [ -f ~/.config/mcctl/mcctl.conf ]; then
+        echo '[Info] mcctl config file detected'
+    else
+        echo "[Warn] Configuration file missing"
+    fi
+    if [[ $@ =~ 'env' ]]; then
+        export serverPath=`cat ~/.config/mcctl/mcctl.conf | grep serverPath= | cut -c 12-`
+        export version=`cat ~/.config/mcctl/mcctl.conf | grep version= | cut -c 9-`
+    fi
+    if [[ $@ =~ 'flags' ]]; then
+        export flagsInput=`cat ~/.config/mcctl/mcctl.conf | grep flags= | cut -c 7-`
+    fi
+}
+
+#Create conf
+function createConf(){
+    echo '[Info] Creating config file'
+    mkdir ~/.config/mcctl
+    touch mcctl.conf
+}
+
+#Save configuration to  >~/.config/mcctl/mcctl.conf
+function saveConfig(){
+    if [ -f ~/.config/mcctl/mcctl.conf ]; then
+        echo '[Info] mcctl config file detected'
+    else
+        createConf
+    fi
+    echo "[Info] Overriding config"
+    rm ~/.config/mcctl/mcctl.conf
+    echo "serverPath=${serverPath}" >>~/.config/mcctl/mcctl.conf
+    echo "version=${version}" >>~/.config/mcctl/mcctl.conf
+    echo "flags=${flagsInput}" >>~/.config/mcctl/mcctl.conf
+}
+
 #Detect installed files
 function detectInstalledFiles(){
     for env in paperInstalled mojangInstalled spigotInstalled floodgateInstalled geyserInstalled mtvehiclesInstalled sacInstalled huskhomesInstalled; do
@@ -56,11 +93,11 @@ function detectInstalledFiles(){
         huskhomesInstalled=true
         updateFlags="${updateFlags} huskhomes"
     fi
-    if [ ${paperInstalled} = true ]; then
+    if [[ ${paperInstalled} = 'true' ]]; then
         echo "[Info] Paper detected"
-    elif [ ${spigotInstalled} = true ]; then
+    elif [[ ${spigotInstalled} = 'true' ]]; then
         echo "[Info] Spigot detected"
-    elif [ ${mojangInstalled} = true ]; then
+    elif [[ ${mojangInstalled} = 'true' ]]; then
         echo "[Info] Mojang server detected"
     fi
 }
@@ -251,6 +288,16 @@ function cleanFile(){
         done
         unset logFiles
     fi
+    if [ $@ =~ unattended ]; then
+        echo '[Info] Skipping config file in ~/.config'
+    else
+        unset confirm
+        read -p '[Warn] Do you want to completely delete mcctl configs?[y/n]: ' confirm
+        if [ ${confirm} = y ]; then
+            rm -rf ~/.config/mcctl
+        fi
+    fi
+
 }
 
 #Exit script
@@ -709,10 +756,28 @@ function startMinecraft(){
 }
 
 ######Function End######
+flagsInput=$@
+if [[ ${flagsInput} =~ 'save-conf' ]]; then
+    saveConfig
+fi
+if [[ $@ =~ 'create-conf' ]]; then
+    createConf
+fi
+if [[ $@ = currentdirectory ]]; then
+    serverPath=`pwd`
+fi
+if [[ $@ =~ latest ]]; then
+    version=1.19
+fi
 if [[ ! $@ ]]; then
-    echo "[Info] Hello! `whoami` at `date`"
-    printCopyright
-    exit 0
+    unset flagsInput
+    readConf flags
+fi
+if [ ! ${serverPath} ]; then
+    readConf env
+fi
+if [ ! ${version} ]; then
+    readConf env
 fi
 echo "[Info] Hello! `whoami` at `date`"
 printCopyright
@@ -720,49 +785,49 @@ checkBit
 echo "[Info] Reading settings"
 clean 1>/dev/null 2>/dev/null
 checkConfig
-if [[ $@ =~ 'install' ]]; then
+if [[ ${flagsInput} =~ 'install' ]]; then
     installScript
     exit 0
 fi
-if [[ $@ =~ 'remove' ]]; then
+if [[ ${flagsInput} =~ 'remove' ]]; then
     uninstallScript
     uninstallService
 fi
-if [[ $@ =~ 'autostart' ]]; then
-    createStartupService $@
+if [[ ${flagsInput} =~ 'autostart' ]]; then
+    createStartupService ${flagsInput}
     exit 0
 fi
-if [[ $@ =~ "instreq" ]]; then
-    installRequirements $@
+if [[ ${flagsInput} =~ "instreq" ]]; then
+    installRequirements ${flagsInput}
 fi
-if [[ $@ =~ 'update' ]]; then
-    if [[ $@ =~ autodetect ]]; then
+if [[ ${flagsInput} =~ 'update' ]]; then
+    if [[ ${flagsInput} =~ autodetect ]]; then
     detectInstalledFiles
-        if [[ $@ =~ "unattended" ]]; then
-            updateMain $@ -nosudo ${updateFlags} 1>>${log} 2>>${log_error}
+        if [[ ${flagsInput} =~ "unattended" ]]; then
+            updateMain ${flagsInput} -nosudo ${updateFlags} 1>>${log} 2>>${log_error}
             mergeBuildToolsLog
         else
-            updateMain $@ ${updateFlags}
+            updateMain ${flagsInput} ${updateFlags}
         fi
     else
-        if [[ $@ =~ "unattended" ]]; then
-            updateMain $@ -nosudo 1>>${log} 2>>${log_error}
+        if [[ ${flagsInput} =~ "unattended" ]]; then
+            updateMain ${flagsInput} -nosudo 1>>${log} 2>>${log_error}
             mergeBuildToolsLog
         else
-            updateMain $@
+            updateMain ${flagsInput}
         fi
     fi
 fi
 
-if [[ $@ =~ clean ]]; then
+if [[ ${flagsInput} =~ clean ]]; then
     cleanFile buildTools
     cleanFile log
 fi
 
-if [[ $@ =~ startminecraft ]]; then
-    if [[ $@ = 'unattended' ]]; then
-        startMinecraft $@ d
+if [[ ${flagsInput} =~ startminecraft ]]; then
+    if [[ ${flagsInput} = 'unattended' ]]; then
+        startMinecraft ${flagsInput} d
     else
-        startMinecraft $@
+        startMinecraft ${flagsInput}
     fi
 fi
