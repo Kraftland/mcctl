@@ -1,9 +1,39 @@
 #!/bin/bash
 
 log='~/mcctl.log'
-log_error='~/mcctl_debug.log'
+logError='~/mcctl_debug.log'
 
 ######Function Start######
+#Generate a lock file to prevent more than one processes running
+function lockFile(){
+    if [[ $@ = 'lock' ]]; then
+        echo '[Info] Creating lock file'
+        touch ~/.mcctl.lock 2>/dev/null
+        chmod 400 ~/.mcctl.lock 2>/dev/null
+    fi
+    if [[ $@ = 'check' ]]; then
+        if [ -f '~/.mcctl.lock' ]; then
+            exitScript 14
+        fi
+    fi
+    if [[ $@ = 'unlock' ]]; then
+        echo '[Info] Deleting lock file'
+        rm -rf ~/.mcctl.lock 2>/dev/null
+    fi
+}
+
+#Check if using zsh
+function checkBash(){
+    if [[ ${SHELL} =~ zsh ]]; then
+        echo '[Warn] You are using zsh as default shell, changing your default shell to bash'
+        chsh -s /bin/bash
+    elif [[ ${SHELL} =~ bash ]]; then
+        echo "[Info] You are using ${SHELL}"
+    else
+        echo '[Warn] Switch to bash ASAP'
+    fi
+}
+
 #Read configurations from  >~/.config/mcctl/mcctl.conf
 function readConf(){
     if [ -f ~/.config/mcctl/mcctl.conf ]; then
@@ -313,13 +343,13 @@ function exitScript(){
         elif [[ $@ = 2 ]]; then
             sign='Can not create directory'
         elif [[ $@ = 3 ]]; then
-            sign='Non-64-bit system detected, use unsafe to override'
+            sign='Non-64-bit system detected'
         elif [[ $@ = 4 ]];then
             sign='Environment variables not set'
         elif [[ $@ = 5 ]]; then
             sign='System update failed'
         elif [[ $@ = 6 ]]; then
-            sign='BuildTools failed to start, use clean to fix it'
+            sign='BuildTools failed to start'
         elif [[ $@ = 7 ]]; then
             sign='No jar file detected'
         elif [[ $@ = 8 ]]; then
@@ -334,6 +364,10 @@ function exitScript(){
             sign='Permission denied'
         elif [[ $@ = 13 ]]; then
             sign='User cancelled'
+        elif [[ $@ = 14 ]]; then
+            sign="mcctl lock file found, make sure you doesn't run another mcctl process"
+        elif [[ $@ = 15 ]]; then
+            sign="Exit code from minecraft detected"
         elif [[ ! $@ ]]; then
             sign='Internal error'
         else
@@ -450,6 +484,7 @@ function detectPackageManager(){
 }
 #checkConfig
 checkConfig(){
+    checkBash
     if [ ! ${version} ]; then
         exitScript 4
     fi
@@ -457,7 +492,7 @@ checkConfig(){
         exitScript 4
     fi
     if [ ! $build ]; then
-        export build=500
+        export build=400
     fi
 }
 #removeJarFile
@@ -716,6 +751,8 @@ function updateMain(){
 
 #Start Minecraft server
 function startMinecraft(){
+    lockFile unlock
+    echo '[Info] Attempting to start Minecraft server'
     if [[ $@ =~ 'd' ]]; then
         checkScreen
     fi
@@ -727,12 +764,12 @@ function startMinecraft(){
             mv ${serverPath}/spigot-*.jar ${serverPath}/Spigot-latest.jar
         fi
         cd ${serverPath}
-        if [[ $@ =~ d ]]; then
+        if [[ $@ =~ 'd' ]]; then
             screenName='spigot' screenCommand='java -jar Spigot-latest.jar nogui' createScreen
         else
             java -jar Spigot-latest.jar
         fi
-    elif [[ $@ =~ paper ]]; then
+    elif [[ $@ =~ 'paper' ]]; then
         if [ -f ${serverPath}/paper-*.jar ]; then
             mv ${serverPath}/paper-*.jar ${serverPath}/Paper-latest.jar
         fi
@@ -753,10 +790,18 @@ function startMinecraft(){
             java -jar Minecraft-latest.jar
         fi
     fi
+    if [[ $? = 0 ]]; then
+        echo '[Info] Minecraft exited'
+    else
+        exitScript 15
+    fi
+    lockFile lock
 }
 
 ######Function End######
 flagsInput=$@
+lockFile check
+lockFile lock
 if [[ ${flagsInput} =~ 'save-conf' ]]; then
     saveConfig
 fi
@@ -804,14 +849,14 @@ if [[ ${flagsInput} =~ 'update' ]]; then
     if [[ ${flagsInput} =~ autodetect ]]; then
     detectInstalledFiles
         if [[ ${flagsInput} =~ "unattended" ]]; then
-            updateMain ${flagsInput} -nosudo ${updateFlags} 1>>${log} 2>>${log_error}
+            updateMain ${flagsInput} -nosudo ${updateFlags} 1>>${log} 2>>${logError}
             mergeBuildToolsLog
         else
             updateMain ${flagsInput} ${updateFlags}
         fi
     else
         if [[ ${flagsInput} =~ "unattended" ]]; then
-            updateMain ${flagsInput} -nosudo 1>>${log} 2>>${log_error}
+            updateMain ${flagsInput} -nosudo 1>>${log} 2>>${logError}
             mergeBuildToolsLog
         else
             updateMain ${flagsInput}
@@ -831,3 +876,4 @@ if [[ ${flagsInput} =~ startminecraft ]]; then
         startMinecraft ${flagsInput}
     fi
 fi
+lockFile unlock

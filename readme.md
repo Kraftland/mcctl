@@ -1,3 +1,7 @@
+---
+
+---
+
 # mcctl
 
 ---
@@ -81,7 +85,7 @@ Note: Install `screen` if you add -d, you can go back to your server session by 
 [Environment Variables] mcctl --save-conf [Options]
 ```
 
-Next time you use `mcctl`, just type `mcctl`. Script will automatically remember your options.
+Next time you use `mcctl`, just type `mcctl`. Script will automatically remember what you entered last time.
 
 ## Install requirements (Currently in beta, only pacman and apt recives full support)
 
@@ -138,11 +142,11 @@ Check if you have environment variables set, either in `/etc/environment` or bef
 
 Don't forget to add a `-unattended` option or you won't be able to inspect any output from script
 
-***<u><mark>Warning: you have to manually restart the server, otherwise some plugins WON'T use new features.</mark></u>***
+***<u><mark>Warning: you have to manually restart the server, otherwise some plugins WON'T use new features.`/reload` or `/reload confirm`</mark></u>***
 
 ## How to create a entirely new server?
 
-Just add a `newserver` option, script will automatically handle it.
+Just add a `-newserver` option, script will automatically handle it.
 
 # To-dos
 
@@ -155,3 +159,73 @@ Just add a `newserver` option, script will automatically handle it.
 - Do not use `manjaro-zsh-config-git` or any other similar package or you might experience screen problems. If you have to use those zsh plugins, change your default shell to bash `chsh -s /bin/bash`
 
 - Can't download sac due to spigotmc.org's unique protection
+
+# Troubleshoot
+
+## Exit code
+
+### Can not create directory
+
+Make sure you have control of the directory
+
+### Non-64-bit system detected
+
+```bash
+[Environment Variables] mcctl --unsafe [Options]
+```
+
+### Environment variables not set
+
+Set 2 environment variables `serverPath` `version`, either before `mcctl` command or in `/etc/environment`.
+
+### System update failed
+
+Check if you have full control of your server.
+
+### BuildTools failed to start
+
+```bash
+mcctl --currentdirectory --latest
+```
+
+### No jar file detected
+
+Check if you have specified correct directory.
+
+### Screen not installed
+
+Install package `screen` or 
+
+```bash
+mcctl --instreq  #Currently unstable
+```
+
+### Package manager not supported
+
+mcctl cannot detect which package manager you're using, remove `--systemupdate` and wait for support.
+
+### Systemd missing
+
+install package `systemd`, its not supported by `--instreq` by default because mess up your init will cause unexpected issues.
+
+### Network unrechable
+
+Can't reach `github.com`, check your network and proxy settings.
+
+### Permission denied
+
+Run the script as root or remove `--unattended`
+
+### mcctl lock file found, make sure you doesn't run another mcctl process
+
+mcctl generates a lock file `~/.mcctl.lock` to prevent multiple mcctl run at the same time.
+
+Several mcctl process may cause problems which might break your server. If you sure that no mcctl running (Check with htop btw.), just remove `~/.mcctl.lock`
+
+### Exit code from minecraft detected
+
+Your server throws a exit code, check your screen name by  `screen -ls`  then `screen -r $screenName`
+
+### Internal error
+
+This is an undefined exit code, you can check  `~/mcctl_debug.log`
