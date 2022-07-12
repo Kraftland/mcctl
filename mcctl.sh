@@ -53,7 +53,7 @@ function readConf(){
 #Create conf
 function createConf(){
     echo '[Info] Creating config file'
-    mkdir ~/.config/mcctl
+    mkdir -p ~/.config/mcctl
     touch mcctl.conf
 }
 
@@ -384,8 +384,8 @@ function exitScript(){
 function createFolder(){
     if [ ! -d ${serverPath} ]; then
         echo '[Info] Path to server is empty, creating new directory'
-        mkdir ${serverPath}
-        mkdir ${serverPath}/plugins
+        mkdir -p ${serverPath}
+        mkdir -p ${serverPath}/plugins
         if [ $? = 1 ]; then
         echo '[Info] mkdir returned error code 1, retrying with sudo'
             if [ $@ =~ 'unattended' ]; then
@@ -395,8 +395,7 @@ function createFolder(){
                 if [ `whoami` = root ]; then
                     exitScript 2
                 else
-                    sudo mkdir ${serverPath}
-                    sudo mkdir ${serverPath}/plugins
+                    sudo mkdir -p ${serverPath}/plugins
                 fi
             fi
         fi
@@ -406,11 +405,11 @@ function createFolder(){
     fi
     if [ ! -d ${serverPath}/plugins ]; then
         echo '[Info] Plugins folder not found, trying to create'
-        mkdir ${serverPath}/plugins
+        mkdir -p ${serverPath}/plugins
         if [ $? = 1 ]; then
             echo '[Info] mkdir failed, trying with root'
             if [[ $@ =~ 'unattended' ]]; then
-                sudo mkdir ${serverPath}/plugins
+                sudo mkdir -p ${serverPath}/plugins
             else
                 echo '[Warn] unattended flag detected'
                 exitScript 2

@@ -72,10 +72,11 @@ mcctl -update [options]
 [Environment Variables] mcctl -start -[Server name] -d
 ```
 
-| Server name | Effects        |
-| ----------- | -------------- |
-| paper       | Start PaperMC  |
-| spigot      | Start SpigotMC |
+| Server name | Effects             |
+| ----------- | ------------------- |
+| paper       | Start PaperMC       |
+| spigot      | Start SpigotMC      |
+| mojang      | Start Mojang server |
 
 Note: Install `screen` if you add -d, you can go back to your server session by `screen -r mc`.
 
