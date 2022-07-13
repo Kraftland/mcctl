@@ -6,7 +6,7 @@
 
 ![](https://raw.githubusercontent.com/Kimiblock/mcctl/master/demo.png "Demo")
 
-Warn: Windows and macOS is not supported, use Arch Linux to achieve best experience.
+Warn: Windows and macOS are not supported, use Arch Linux to achieve best experience.
 
 # Usage
 
