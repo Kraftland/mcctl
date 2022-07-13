@@ -8,6 +8,8 @@
 
 `mcctl` (aka minecraft-server-control) is a bash script which can automatically run and update your minecraft server.
 
+Warn: Windows and macOS is not supported, use Arch Linux to achieve best experience.
+
 # Usage
 
 First set 2 environment variables: `$version` and `$serverPath`. This will tell mcctl your desired version and path to your server 
@@ -88,7 +90,7 @@ Note: Install `screen` if you add -d, you can go back to your server session by 
 
 Next time you use `mcctl`, just type `mcctl`. Script will automatically remember what you entered last time.
 
-## Install requirements (Currently in beta, only pacman and apt recives full support)
+## Install requirements (Currently beta, only pacman and apt recive full support)
 
 | Options | Effects              |
 | ------- | -------------------- |
@@ -96,13 +98,13 @@ Next time you use `mcctl`, just type `mcctl`. Script will automatically remember
 
 # Tips and tricks
 
-## Delete Spigot BuildTools' cache and script's logs
+## Delete BuildTools' cache and script's logs
 
 ```bash
 mcctl --clean
 ```
 
-## Bypass entering environment variables
+## Avoid entering environment variables
 
 ### Method 1
 
@@ -125,9 +127,9 @@ mcctl --currentdirectory --latest [options]
 
 This will set server path to your current folder and default to the latest version.
 
-## Update `mcmt` command?
+## Update `mcctl` command?
 
-Just type `mcmt install` again, script will download the latest version of itself and perform updates.
+Just type `mcctl install` again, script will download the latest version of itself and perform updates.
 
 ## Update server everyday?
 
@@ -136,7 +138,7 @@ Get the cronie package and enable `cronie.service`.
 Type `crontab -e` and enter those line:
 
 ```
-0 0 * * * mcctl [Options]
+0 0 * * * mcctl --[Options]
 ```
 
 Check if you have environment variables set, either in `/etc/environment` or before `mcctl`
