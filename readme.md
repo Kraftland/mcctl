@@ -4,6 +4,8 @@
 
 `mcctl` (aka minecraft-server-control) is a bash script which can automatically run and update your minecraft server.
 
+![](https://raw.githubusercontent.com/Kimiblock/mcctl/master/demo.png "Demo")
+
 Warn: Windows and macOS is not supported, use Arch Linux to achieve best experience.
 
 # Usage
