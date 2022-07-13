@@ -73,13 +73,14 @@ function saveConfig(){
 
 #Detect installed files
 function detectInstalledFiles(){
+    echo '[Info] Detecting installed files'
     for env in paperInstalled mojangInstalled spigotInstalled floodgateInstalled geyserInstalled mtvehiclesInstalled sacInstalled huskhomesInstalled; do
         unset ${env}
     done
     unset env
     if [ -f ${serverPath}/paper-*.jar ]; then
         paperInstalled=true
-        mv ${serverPath}/paper-*.jar ${serverPath}/Paper-latest.jar
+        mv ${serverPath}/paper-*.jar ${serverPath}/Paper-latest.jar 2>/dev/null
         updateFlags="${updateFlags} paper"
     elif [ -f ${serverPath}/Paper-latest.jar ]; then
         paperInstalled=true
@@ -87,7 +88,7 @@ function detectInstalledFiles(){
     fi
     if [ -f ${serverPath}/server.jar ]; then
         mojangInstalled=true
-        mv ${serverPath}/server.jar ${serverPath}/Minecraft-latest.jar
+        mv ${serverPath}/server.jar ${serverPath}/Minecraft-latest.jar 2>/dev/null
         updateFlags="${updateFlags} mojang"
     elif [ -f ${serverPath}/Minecraft-latest.jar ]; then
         mojangInstalled=true
@@ -98,7 +99,7 @@ function detectInstalledFiles(){
         updateFlags="${updateFlags} spigot"
     elif [ -f ${serverPath}/spigot-*.jar ]; then
         spigotInstalled=true
-        mv ${serverPath}/spigot-*.jar ${serverPath}/Spigot-latest.jar
+        mv ${serverPath}/spigot-*.jar ${serverPath}/Spigot-latest.jar 2>/dev/null
         updateFlags="${updateFlags} spigot"
     fi
     if [ -f ${serverPath}/plugins/floodgate-spigot.jar ]; then
@@ -114,12 +115,12 @@ function detectInstalledFiles(){
         updateFlags="${updateFlags} mtvehicles"
     fi
     if [ -f ${serverPath}/plugins/SoaromaSAC*.jar ]; then
-        mv ${serverPath}/plugins/SoaromaSAC*.jar ${serverPath}/plugins/SoaromaSAC.jar
+        mv ${serverPath}/plugins/SoaromaSAC*.jar ${serverPath}/plugins/SoaromaSAC.jar 2>/dev/null
         sacInstalled=true
         updateFlags="${updateFlags} sac"
     fi
     if [ -f ${serverPath}/plugins/HuskHomes*.jar ]; then
-        mv ${serverPath}/plugins/HuskHomes*.jar ${serverPath}/plugins/HuskHomes.jar
+        mv ${serverPath}/plugins/HuskHomes*.jar ${serverPath}/plugins/HuskHomes.jar 2>/dev/null
         huskhomesInstalled=true
         updateFlags="${updateFlags} huskhomes"
     fi
