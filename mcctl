@@ -202,7 +202,7 @@ function installScript(){
     echo '[Info] Installing script, asking root permission'
     pathPrevious=`pwd`
     cd mcctl
-    mv mcctl.sh mcctl
+    #mv mcctl.sh mcctl
     sudo mv mcctl /usr/bin
     if [ ! $? = 0 ]; then
         exitScript 12

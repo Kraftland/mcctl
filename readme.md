@@ -19,15 +19,15 @@ First set 2 environment variables: `$version` and `$serverPath`. This will tell 
 Examples:
 
 ```bash
-version=1.19 serverPath=/mnt/main/Cache/Paper bash mcctl.sh --update --autodetect
+version=1.19 serverPath=/mnt/main/Cache/Paper bash mcctl --update --autodetect
 ```
 
 ## Install mcctl as a system command (Not required)
 
-Note: If you haven't installed mcctl to your system, just replace `mcctl` with `./mcctl.sh`
+Note: If you haven't installed mcctl to your system, just cd to mcctl and replace `mcctl` with `./mcctl`
 
 ```bash
-git clone https://github.com/Kimiblock/mcctl.git && cd mcctl && ./mcctl.sh --install
+git clone https://github.com/Kimiblock/mcctl.git && cd mcctl && ./mcctl --install
 ```
 
 ## Uninstall mcctl command
