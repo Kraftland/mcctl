@@ -13,13 +13,13 @@
 First set 2 environment variables: `$version` and `$serverPath`. This will tell mcctl your desired version and path to your server 
 
 ```bash
-[Environment Variables] mcctl [Options]
+[Environment Variables] mcctl --[Options]
 ```
 
 Examples:
 
 ```bash
-version=1.19 serverPath=/mnt/main/Cache/Paper bash mcctl.sh -update -autodetect
+version=1.19 serverPath=/mnt/main/Cache/Paper bash mcctl.sh --update --autodetect
 ```
 
 ## Install mcctl as a system command (Not required)
@@ -27,13 +27,13 @@ version=1.19 serverPath=/mnt/main/Cache/Paper bash mcctl.sh -update -autodetect
 Note: If you haven't installed mcctl to your system, just replace `mcctl` with `./mcctl.sh`
 
 ```bash
-git clone https://github.com/Kimiblock/mcctl.git && cd mcctl && ./mcctl.sh -install
+git clone https://github.com/Kimiblock/mcctl.git && cd mcctl && ./mcctl.sh --install
 ```
 
 ## Uninstall mcctl command
 
 ```bash
-mcctl -remove
+mcctl --remove
 ```
 
 ## Update your Minecraft server and plugins
@@ -43,13 +43,13 @@ mcctl -remove
 Tip: Now you can let mcctl automatically detect servers and plugins to install, just type:
 
 ```bash
-mcctl -update -autodetect
+mcctl --update --autodetect
 ```
 
 ### Manually
 
 ```bash
-mcctl -update [options]
+mcctl --update --[options]
 ```
 
 | Options                    | Effects                                                                     |
@@ -69,7 +69,7 @@ mcctl -update [options]
 ## Load server at startup
 
 ```bash
-[Environment Variables] mcctl -start -[Server name] -d
+[Environment Variables] mcctl --start --[Server name] -d
 ```
 
 | Server name | Effects             |
@@ -83,7 +83,7 @@ Note: Install `screen` if you add -d, you can go back to your server session by 
 ## Save your options and environments
 
 ```bash
-[Environment Variables] mcctl --save-conf [Options]
+[Environment Variables] mcctl --save-conf --[Options]
 ```
 
 Next time you use `mcctl`, just type `mcctl`. Script will automatically remember what you entered last time.
@@ -99,7 +99,7 @@ Next time you use `mcctl`, just type `mcctl`. Script will automatically remember
 ## Delete Spigot BuildTools' cache and script's logs
 
 ```bash
-mcctl -clean
+mcctl --clean
 ```
 
 ## Bypass entering environment variables
@@ -141,13 +141,13 @@ Type `crontab -e` and enter those line:
 
 Check if you have environment variables set, either in `/etc/environment` or before `mcctl`
 
-Don't forget to add a `-unattended` option or you won't be able to inspect any output from script
+Don't forget to add a `--unattended` option or you won't be able to inspect any output from script
 
 ***<u><mark>Warning: you have to manually restart the server, otherwise some plugins WON'T use new features.`/reload` or `/reload confirm`</mark></u>***
 
 ## How to create a entirely new server?
 
-Just add a `-newserver` option, script will automatically handle it.
+Just add a `--newserver` option, script will automatically handle it.
 
 # To-dos
 
@@ -172,7 +172,7 @@ Make sure you have control of the directory
 ### Non-64-bit system detected
 
 ```bash
-[Environment Variables] mcctl --unsafe [Options]
+[Environment Variables] mcctl --unsafe --[Options]
 ```
 
 ### Environment variables not set
