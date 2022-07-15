@@ -319,7 +319,7 @@ function cleanFile(){
         done
         unset logFiles
     fi
-    if [ $@ =~ unattended ]; then
+    if [[ $@ =~ unattended ]]; then
         echo '[Info] Skipping config file in ~/.config'
     else
         unset confirm
