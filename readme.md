@@ -4,7 +4,7 @@
 
 `mcctl` (aka minecraft-server-control) is a bash script which can automatically run and update your minecraft server.
 
-![](https://raw.githubusercontent.com/Kimiblock/mcctl/master/demo.png "Demo")
+![](https://raw.githubusercontent.com/Kimiblock/mcctl/master/resources/demo.png "Demo")
 
 Warn: Windows and macOS are not supported, use Arch Linux to achieve best experience.
 
@@ -52,22 +52,20 @@ mcctl --update --autodetect
 mcctl --update --[options]
 ```
 
-| Options      | Effects                                                                     |
-| ------------ | --------------------------------------------------------------------------- |
-| spigot       | Update spigot.                                                              |
-| paper        | Update paper.                                                               |
-| sac          | Update SoaromaSAC                                                           |
-| floodgate    | Update floodgate.                                                           |
-| geyser       | Update geyser.                                                              |
-| systemupdate | Fully update your system. ( Run with `sudo` when `-unattended` activated! ) |
-| unsafe       | Disable default protecting.                                                 |
-| outtolog     | Redirect output to several log files.                                       |
-| newserver    | Automatically create server folder.                                         |
-| nosudo       | Do not use sudo for system update.                                          |
-| clean        | Clean leftovers.                                                            |
-| mtvehicles   | Update mtvehicles                                                           |
-
-
+| Options      | Effects                                                                      |
+| ------------ | ---------------------------------------------------------------------------- |
+| spigot       | Update spigot.                                                               |
+| paper        | Update paper.                                                                |
+| sac          | Update SoaromaSAC                                                            |
+| floodgate    | Update floodgate.                                                            |
+| geyser       | Update geyser.                                                               |
+| systemupdate | Fully update your system. ( Run with `sudo` when `-unattended` activated! )  |
+| unsafe       | Disable default protecting.                                                  |
+| outtolog     | Redirect output to several log files.                                        |
+| newserver    | Automatically create server folder.                                          |
+| nosudo       | Do not use sudo for system update.                                           |
+| clean        | Clean leftovers.                                                             |
+| mtvehicles   | Update mtvehicles (Unnecessary because you can update plugin by /mtv update) |
 
 ## Load server at startup
 
