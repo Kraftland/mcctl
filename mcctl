@@ -36,7 +36,7 @@ function instWebdriver(){
         sudo dnf update
         sudo dnf install python3-pip chromium -y
     fi
-    pip show undetected-chromedriver
+    pip show undetected-chromedriver 1>/dev/null 2>/dev/null
     if [[ $? = 1 ]]; then
         echo '[Info] Installing chromedriver'
         pip install undetected-chromedriver==3.1.5 1>/dev/null
@@ -45,6 +45,7 @@ function instWebdriver(){
         pip install undetected-chromedriver==3.1.5 1>/dev/null
     fi
     while [[ $? = 1 ]]; do
+        echo '[Warn] Retrying install chromedriver'
         pip install undetected-chromedriver==3.1.5 1>/dev/null
     done
 }
@@ -276,6 +277,7 @@ function installScript(){
     pathPrevious=`pwd`
     cd mcctl
     instResource
+    instWebdriver
     #mv mcctl.sh mcctl
     sudo mv mcctl /usr/bin
     if [ ! $? = 0 ]; then
