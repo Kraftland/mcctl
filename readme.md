@@ -52,19 +52,22 @@ mcctl --update --autodetect
 mcctl --update --[options]
 ```
 
-| Options                    | Effects                                                                     |
-| -------------------------- | --------------------------------------------------------------------------- |
-| spigot                     | Update spigot.                                                              |
-| paper                      | Update paper.                                                               |
-| ~~sac~~ (Currently broken) | ~~Update sac.~~                                                             |
-| floodgate                  | Update floodgate.                                                           |
-| geyser                     | Update geyser.                                                              |
-| systemupdate               | Fully update your system. ( Run with `sudo` when `-unattended` activated! ) |
-| unsafe                     | Disable default protecting.                                                 |
-| outtolog                   | Redirect output to several log files.                                       |
-| newserver                  | Automatically create server folder.                                         |
-| nosudo                     | Do not use sudo for system update.                                          |
-| clean                      | Clean leftovers.                                                            |
+| Options      | Effects                                                                     |
+| ------------ | --------------------------------------------------------------------------- |
+| spigot       | Update spigot.                                                              |
+| paper        | Update paper.                                                               |
+| sac          | Update SoaromaSAC                                                           |
+| floodgate    | Update floodgate.                                                           |
+| geyser       | Update geyser.                                                              |
+| systemupdate | Fully update your system. ( Run with `sudo` when `-unattended` activated! ) |
+| unsafe       | Disable default protecting.                                                 |
+| outtolog     | Redirect output to several log files.                                       |
+| newserver    | Automatically create server folder.                                         |
+| nosudo       | Do not use sudo for system update.                                          |
+| clean        | Clean leftovers.                                                            |
+| mtvehicles   | Update mtvehicles                                                           |
+
+
 
 ## Load server at startup
 

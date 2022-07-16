@@ -4,6 +4,78 @@ log='~/mcctl.log'
 logError='~/mcctl_debug.log'
 
 ######Function Start######
+#Store download urls
+function getUrl(){
+    echo "[Info] Finding url"
+}
+
+#Use Chromedriver to download
+function chromedriverDownload(){
+    echo '[Warn] This download method requires a X display'
+    echo '[Warn] If you connect server via ssh, install xorg-xserver and add -Y argument to your ssh command'
+    echo '[Warn] This argument will enable X11 forwarding, make sure you enabled it in ssh config!'
+    python3 /opt/mcctl/chromedriver.py ${url}
+    if [ -f '~/下载/*.crdownload' ]; then #Detect Chinese environment since some idiot use Chinese as server's primary language
+        mv ~/下载/*.crdownload ~/${checkFile}
+    else
+        mv ~/Downloads/*.crdownload ~/${checkFile}
+        mv ~/Download/*.crdownload ~/${checkFile}
+    fi
+}
+
+#Install webdriver
+function instWebdriver(){
+    detectPackageManager
+    if [ ${packageManager} = 'pacman' ]; then
+        sudo pacman -Sy
+        sudo pacman -S python-pip chromium --noconfirm --needed
+    elif [ ${packageManager} = 'apt' ]; then
+        sudo apt update
+        sudo apt install python3-pip chromium -y
+    elif [ ${packageManager} = 'dnf' ]; then
+        sudo dnf update
+        sudo dnf install python3-pip chromium -y
+    fi
+    pip show undetected-chromedriver
+    if [[ $? = 1 ]]; then
+        echo '[Info] Installing chromedriver'
+        pip install undetected-chromedriver==3.1.5 1>/dev/null
+    else
+        echo '[Info] Updating chromedriver'
+        pip install undetected-chromedriver==3.1.5 1>/dev/null
+    fi
+    while [[ $? = 1 ]]; do
+        pip install undetected-chromedriver==3.1.5 1>/dev/null
+    done
+}
+
+#Install resources to opt
+function instResource(){
+    sudo mkdir -p /opt/mcctl 2>/dev/null
+    mv resources /opt/mcctl/
+}
+
+#Install cf-scrape
+function instcfscrape(){
+    detectPackageManager
+    if [ ${packageManager} ='pacman' ]; then
+        sudo pacman -Sy
+        sudo pacman -S python-pip nodejs --noconfirm --needed
+    elif [ ${packageManager} = 'apt' ]; then
+        sudo apt update
+        sudo apt install python3-pip nodejs -y
+    elif [ ${packageManager} ='dnf' ]; then
+        sudo dnf update
+        sudo dnf install python3-pip nodejs -y
+    fi
+    pip show cfscrape
+    if [[ $? = 1 ]]; then
+        pip install cfscrape
+    else
+        pip install -U cfscrape
+    fi
+}
+
 #Generate a lock file to prevent more than one processes running
 function lockFile(){
     if [[ $@ = 'lock' ]]; then
@@ -203,6 +275,7 @@ function installScript(){
     echo '[Info] Installing script, asking root permission'
     pathPrevious=`pwd`
     cd mcctl
+    instResource
     #mv mcctl.sh mcctl
     sudo mv mcctl /usr/bin
     if [ ! $? = 0 ]; then
@@ -556,13 +629,14 @@ function integrityProtect(){
         elif [ -f SoaromaSAC-*.jar ]; then
             mv SoaromaSAC-*.jar SoaromaSAC.jar
         fi
+        unset different
         diff -q ${checkFile} ${checkFile}.check
         different=$?
     fi
     if [ ${different} = 1 ]; then
         echo "[Warn] Checking job done, repairing ${checkFile}."
         redownload
-    elif [ $@ = 0 ]; then
+    elif [ ${different} = 0 ]; then
         echo "[Info] Ckecking job done, ${ckeckFile} verified."
         rm -rf *.check
     fi
@@ -588,12 +662,6 @@ function pluginUpdate(){
     elif [ $@ = Geyser ]; then
         pluginName="$@"
         url="https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/lastSuccessfulBuild/artifact/bootstrap/spigot/target/Geyser-Spigot.jar"
-    elif [ $@ = SAC ]; then
-        pluginName="$@"
-        url="https://www.spigotmc.org/resources/soaromasac-lightweight-cheat-detection-system.87702/download?version=458883"
-    elif [ $@ = MTVehicles ]; then
-        pluginName="$@"
-        url="https://www.spigotmc.org/resources/mtvehicles-vehicle-plugin-free-downloadable.80910/download?version=456797"
     else
         echo "[Warn] Sorry, but we don't have your plugin's download url. Please wait for support~"
     fi
@@ -695,11 +763,7 @@ function updateMain(){
         buildMojang
     fi
     if [[ $@ =~ "mtvehicles" ]]; then
-        isPlugin=true
-        pluginUpdate MTVehicles
-        checkFile="MTVehicles.jar"
-        integrityProtect
-        versionCompare
+        url='https://www.spigotmc.org/resources/mtvehicles-vehicle-plugin-free-downloadable.80910/download?version=456797' checkFile='MTVehicles.jar' chromedriverDownload
         update MTVehicles.jar
         clean
     fi
@@ -726,10 +790,7 @@ function updateMain(){
 
     if [[ $@ =~ "sac" ]]; then
         echo "[Warn] Warning! Beta support for SoaromaSAC"
-        pluginUpdate SAC
-        mv SoaromaSAC-*.jar SoaromaSAC.jar
-        isPlugin=true
-        unset checkFile
+        checkFile=SoaromaSAC.jar url='https://www.spigotmc.org/resources/soaromasac-lightweight-cheat-detection-system.87702/download?version=459815' chromedriverDownload
         update SoaromaSAC.jar
     fi
 
