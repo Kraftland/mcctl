@@ -14,7 +14,7 @@ function chromedriverDownload(){
     echo '[Warn] This download method requires a X display'
     echo '[Warn] If you connect server via ssh, install xorg-xserver and add -Y argument to your ssh command'
     echo '[Warn] This argument will enable X11 forwarding, make sure you enabled it in ssh config!'
-    python3 /opt/mcctl/chromedriver.py ${url}
+    python3 /opt/mcctl/resources/chromedriver.py ${url}
     if [ -f '~/下载/*.crdownload' ]; then #Detect Chinese environment since some idiot use Chinese as server's primary language
         mv ~/下载/*.crdownload ~/${checkFile}
     else
