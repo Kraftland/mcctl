@@ -8,9 +8,37 @@ logError='~/mcctl_debug.log'
 function getUrl(){
     echo "[Info] Finding url"
 }
+#Open eula website
+function openEula(){
+    xdg-open --version 1>/dev/null 2>/dev/null
+    if [[ $? = 0 ]]; then
+        xdg-open 'https://account.mojang.com/documents/minecraft_eula'
+    else
+        echo '[Warn] Please read the eula from mojang, please read eula from Mojang(https://account.mojang.com/documents/minecraft_eula)'
+    fi
+}
+
+#Accept Eula
+function acceptEula(){
+    if [[ ${flagsInput} =~ 'unattended' ]]; then
+        echo '[Warn] Please read the eula from mojang, please read eula from Mojang(https://account.mojang.com/documents/minecraft_eula)'
+        echo 'eula=true' >${serverPath}/eula.txt
+    else
+        openEula
+        unset confirm
+        read -p "[Warn] Enter 'Y' to proceed or any other key to cancel" confirm
+        if [ ${confirm} = Y ]; then
+            echo '[Info] Accepting eula'
+            echo 'eula=true' >${serverPath}/eula.txt
+        else
+            echo "[Info] Detected cancel key: ${confirm}"
+        fi
+    fi
+}
 
 #Use Chromedriver to download
 function chromedriverDownload(){
+    echo '[Warn] You must install mcctl to system first'
     echo '[Warn] This download method requires a X display'
     echo '[Warn] If you connect server via ssh, install xorg-xserver and add -Y argument to your ssh command'
     echo '[Warn] This argument will enable X11 forwarding, make sure you enabled it in ssh config!'
@@ -747,10 +775,6 @@ function checkBit(){
 }
 
 function updateMain(){
-    if [[ $@ =~ 'newserver' ]]; then
-        createFolder $@
-    fi
-
     echo "[Info] Starting auto update at `date`"
     cd ${serverPath}/Update/
     if [[ $@ =~ "paper" ]]; then
@@ -896,6 +920,10 @@ checkConfig
 if [[ ${flagsInput} =~ 'install' ]]; then
     installScript
     exit 0
+fi
+if [[ $@ =~ 'newserver' ]]; then
+    createFolder $@
+    acceptEula
 fi
 if [[ ${flagsInput} =~ 'remove' ]]; then
     uninstallScript
