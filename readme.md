@@ -105,6 +105,12 @@ Next time you use `mcctl`, just type `mcctl`. Script will automatically remember
 mcctl --clean
 ```
 
+## Aviod confirming anything
+
+```bash
+mcctl --unattended
+```
+
 ## Avoid entering environment variables
 
 ### Method 1
@@ -143,8 +149,6 @@ Type `crontab -e` and enter those line:
 ```
 
 Check if you have environment variables set, either in `/etc/environment` or before `mcctl`
-
-Don't forget to add a `--unattended` option or you won't be able to inspect any output from script
 
 ***<u><mark>Warning: you have to manually restart the server, otherwise some plugins WON'T use new features.`/reload` or `/reload confirm`</mark></u>***
 

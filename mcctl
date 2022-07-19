@@ -1,8 +1,5 @@
 #!/bin/bash
 
-log='~/mcctl.log'
-logError='~/mcctl_debug.log'
-
 ######Function Start######
 #Store download urls
 function getUrl(){
@@ -12,7 +9,8 @@ function getUrl(){
 function openEula(){
     xdg-open --version 1>/dev/null 2>/dev/null
     if [[ $? = 0 ]]; then
-        xdg-open 'https://account.mojang.com/documents/minecraft_eula'
+        echo '[Info] Opening eula page or manually visit https://account.mojang.com/documents/minecraft_eula'
+        screenName=eulaTemp screenCommand="xdg-open 'https://account.mojang.com/documents/minecraft_eula" createScreen
     else
         echo '[Warn] Please read the eula from mojang, please read eula from Mojang(https://account.mojang.com/documents/minecraft_eula)'
     fi
@@ -80,29 +78,11 @@ function instWebdriver(){
 
 #Install resources to opt
 function instResource(){
+    echo '[Info] Installing resources to /opt/mcctl'
     sudo mkdir -p /opt/mcctl 2>/dev/null
-    mv resources /opt/mcctl/
-}
-
-#Install cf-scrape
-function instcfscrape(){
-    detectPackageManager
-    if [ ${packageManager} ='pacman' ]; then
-        sudo pacman -Sy
-        sudo pacman -S python-pip nodejs --noconfirm --needed
-    elif [ ${packageManager} = 'apt' ]; then
-        sudo apt update
-        sudo apt install python3-pip nodejs -y
-    elif [ ${packageManager} ='dnf' ]; then
-        sudo dnf update
-        sudo dnf install python3-pip nodejs -y
-    fi
-    pip show cfscrape
-    if [[ $? = 1 ]]; then
-        pip install cfscrape
-    else
-        pip install -U cfscrape
-    fi
+    sudo mv resources /opt/mcctl/
+    sudo rm -f /opt/mcctl/resources/demo.png 2>/dev/null
+    echo '[Info] Installed resources to /opt/mcctl'
 }
 
 #Generate a lock file to prevent more than one processes running
@@ -126,8 +106,13 @@ function lockFile(){
 #Check if using zsh
 function checkBash(){
     if [[ ${SHELL} =~ zsh ]]; then
-        echo '[Warn] You are using zsh as default shell, changing your default shell to bash'
-        chsh -s /bin/bash
+        if [ ${flagsInput} =~ 'unattended' ]; then
+            echo '[Critical] Skipping shell changing'
+        else
+            echo '[Warn] You are using zsh as default shell, changing your default shell to bash'
+            echo '[Warn] If you readlly want to bypass this, enter bash and set $SHELL to bash'
+            chsh -s /bin/bash
+        fi
     elif [[ ${SHELL} =~ bash ]]; then
         echo "[Info] You are using ${SHELL}"
     else
@@ -902,6 +887,7 @@ if [[ $@ =~ latest ]]; then
     version=1.19
 fi
 if [[ ! $@ ]]; then
+    echo '[Info] No options detected! Trying to read saved settings'
     unset flagsInput
     readConf flags
 fi
@@ -940,14 +926,14 @@ if [[ ${flagsInput} =~ 'update' ]]; then
     if [[ ${flagsInput} =~ autodetect ]]; then
     detectInstalledFiles
         if [[ ${flagsInput} =~ "unattended" ]]; then
-            updateMain ${flagsInput} -nosudo ${updateFlags} 1>>${log} 2>>${logError}
+            updateMain ${flagsInput} -nosudo ${updateFlags}
             mergeBuildToolsLog
         else
             updateMain ${flagsInput} ${updateFlags}
         fi
     else
         if [[ ${flagsInput} =~ "unattended" ]]; then
-            updateMain ${flagsInput} -nosudo 1>>${log} 2>>${logError}
+            updateMain ${flagsInput} -nosudo
             mergeBuildToolsLog
         else
             updateMain ${flagsInput}
