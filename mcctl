@@ -292,6 +292,7 @@ function checkServiceFileInstalled(){
 function installScript(){
     if [[ ${flagsInput} =~ 'archlinux' ]]; then
         echo '[Info] Downloading script'
+        rm -rf mcctl 2>/dev/null
         git clone https://github.com/Kimiblock/mcctl.git
         if [ ! $? = 0 ]; then
             exitScript 11
