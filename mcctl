@@ -106,7 +106,7 @@ function lockFile(){
 #Check if using zsh
 function checkBash(){
     if [[ ${SHELL} =~ zsh ]]; then
-        if [ ${flagsInput} =~ 'unattended' ]; then
+        if [[ ${flagsInput} =~ 'unattended' ]]; then
             echo '[Critical] Skipping shell changing'
         else
             echo '[Warn] You are using zsh as default shell, changing your default shell to bash'
