@@ -300,8 +300,8 @@ function installScript(){
         echo '[Info] Installing script'
         cd mcctl
         instResource
-        mkdir -p /usr/bin
-        mv mcctl ${pkgdir}/usr/bin
+        sudo mkdir -p /usr/bin
+        sudo mv mcctl ${pkgdir}/usr/bin
         sudo chmod +x ${pkgdir}/usr/bin/mcctl
         echo '[Info] Script installed and updated'
     else
