@@ -78,11 +78,21 @@ function instWebdriver(){
 
 #Install resources to opt
 function instResource(){
-    echo '[Info] Installing resources to /opt/mcctl'
-    sudo mkdir -p /opt/mcctl 2>/dev/null
-    sudo mv resources /opt/mcctl/
-    sudo rm -f /opt/mcctl/resources/demo.png 2>/dev/null
-    echo '[Info] Installed resources to /opt/mcctl'
+    if [[ ${flagsInput} =~ 'archlinux' ]]; then
+        echo '[Info] Installing resources'
+        mkdir -p ${pkgdir}/opt/mcctl
+        mv resources ${pkgdir}/opt/mcctl/
+        rm -f ${pkgdir}/opt/mcctl/resources/demo.png
+        echo '[Info] Installed resources to /opt/mcctl'
+    else
+        echo '[Info] Installing resources'
+        sudo rm -rf /opt/mcctl 2>/dev/null
+        sudo mkdir -p /opt/mcctl
+        sudo mv resources /opt/mcctl/
+        sudo rm -f /opt/mcctl/resources/demo.png
+        echo '[Info] Installed resources to /opt/mcctl'
+    fi
+
 }
 
 #Generate a lock file to prevent more than one processes running
@@ -280,29 +290,44 @@ function checkServiceFileInstalled(){
 
 #Install script
 function installScript(){
-    echo '[Info] Downloading script'
-    rm -rf mcctl 2>/dev/null
-    git clone https://github.com/Kimiblock/mcctl.git 2>/dev/null 1>/dev/null
-    if [ ! $? = 0 ]; then
-        exitScript 11
+    if [[ ${flagsInput} =~ 'archlinux' ]]; then
+        echo '[Info] Downloading script'
+        git clone https://github.com/Kimiblock/mcctl.git
+        if [ ! $? = 0 ]; then
+            exitScript 11
+        fi
+        echo '[Info] Installing script'
+        cd mcctl
+        instResource
+        mkdir -p /usr/bin
+        mv mcctl ${pkgdir}/usr/bin
+        sudo chmod +x ${pkgdir}/usr/bin/mcctl
+        echo '[Info] Script installed and updated'
+    else
+        echo '[Info] Downloading script'
+        rm -rf mcctl 2>/dev/null
+        git clone https://github.com/Kimiblock/mcctl.git 2>/dev/null 1>/dev/null
+        if [ ! $? = 0 ]; then
+            exitScript 11
+        fi
+        echo '[Info] Installing script, asking root permission'
+        pathPrevious=`pwd`
+        cd mcctl
+        instResource
+        #instWebdriver
+        #mv mcctl.sh mcctl
+        sudo mv mcctl /usr/bin
+        if [ ! $? = 0 ]; then
+            exitScript 12
+        fi
+        sudo chmod +x /usr/bin/mcctl
+        if [ ! $? = 0 ]; then
+            exitScript 12
+        fi
+        cd ${pathPrevious}
+        rm -rf mcctl
+        echo '[Info] Script installed and updated'
     fi
-    echo '[Info] Installing script, asking root permission'
-    pathPrevious=`pwd`
-    cd mcctl
-    instResource
-    instWebdriver
-    #mv mcctl.sh mcctl
-    sudo mv mcctl /usr/bin
-    if [ ! $? = 0 ]; then
-        exitScript 12
-    fi
-    sudo chmod +x /usr/bin/mcctl
-    if [ ! $? = 0 ]; then
-        exitScript 12
-    fi
-    cd ${pathPrevious}
-    rm -rf mcctl
-    echo '[Info] Script installed and updated'
 }
 
 #Uninstall script
