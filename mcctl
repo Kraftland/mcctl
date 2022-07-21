@@ -119,9 +119,7 @@ function checkBash(){
         if [[ ${flagsInput} =~ 'unattended' ]]; then
             echo '[Critical] Skipping shell changing'
         else
-            echo '[Warn] You are using zsh as default shell, changing your default shell to bash'
-            echo '[Warn] If you readlly want to bypass this, enter bash and set $SHELL to bash'
-            chsh -s /bin/bash
+            echo '[Warn] You are using zsh as default shell, please change your default shell to bash or you might encounter problems with screen'
         fi
     elif [[ ${SHELL} =~ bash ]]; then
         echo "[Info] You are using ${SHELL}"

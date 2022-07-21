@@ -28,6 +28,18 @@ version=1.19 serverPath=/mnt/main/Cache/Paper bash mcctl --update --autodetect
 
 Note: If you haven't installed mcctl to your system, just cd to mcctl and replace `mcctl` with `./mcctl`
 
+### Arch Linux
+
+Install the [mcctl-git](https://aur.archlinux.org/packages/mcctl-git) from aur
+
+Examples using yay:
+
+```bash
+yay -S mcctl-git
+```
+
+### Other Linux
+
 ```bash
 git clone https://github.com/Kimiblock/mcctl.git && cd mcctl && ./mcctl --install
 ```
@@ -105,7 +117,7 @@ Next time you use `mcctl`, just type `mcctl`. Script will automatically remember
 mcctl --clean
 ```
 
-## Aviod confirming anything
+## Avoid confirming anything
 
 ```bash
 mcctl --unattended
@@ -140,7 +152,7 @@ Just type `mcctl install` again, script will download the latest version of itse
 
 ## Update server everyday?
 
-Get the cronie package and enable `cronie.service`.
+Get the `cronie` package and enable `cronie.service`.
 
 Type `crontab -e` and enter those line:
 
@@ -190,7 +202,7 @@ Set 2 environment variables `serverPath` `version`, either before `mcctl` comman
 
 Check if you have full control of your server.
 
-### BuildTools failed to start
+### `BuildTools` failed to start
 
 ```bash
 mcctl --currentdirectory --latest
@@ -212,7 +224,7 @@ mcctl --instreq  #Currently unstable
 
 mcctl cannot detect which package manager you're using, remove `--systemupdate` and wait for support.
 
-### Systemd missing
+### `Systemd` missing
 
 install package `systemd`, its not supported by `--instreq` by default because mess up your init will cause unexpected issues.
 
@@ -228,7 +240,7 @@ Run the script as root or remove `--unattended`
 
 mcctl generates a lock file `~/.mcctl.lock` to prevent multiple mcctl run at the same time.
 
-Several mcctl process may cause problems which might break your server. If you sure that no mcctl running (Check with htop btw.), just remove `~/.mcctl.lock`
+Several `mcctl` process may cause problems which might break your server. If you sure that no `mcctl` running (Check with htop btw), just remove `~/.mcctl.lock`
 
 ### Exit code from minecraft detected
 
