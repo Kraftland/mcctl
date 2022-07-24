@@ -1,8 +1,11 @@
 # mcctl
 
----
+
 
 [![State-of-the-art Shitcode](https://img.shields.io/static/v1?label=State-of-the-art&message=Shitcode&color=7B5804)](https://github.com/trekhleb/state-of-the-art-shitcode)
+
+------
+
 [![Get it from AUR](https://raw.githubusercontent.com/Kimiblock/mcctl/master/resources/Aur.svg)](https://aur.archlinux.org/packages/mcctl-git)
 
 `mcctl` (aka minecraft-server-control) is a bash script which can automatically run and update your minecraft server.
