@@ -100,7 +100,7 @@ function lockFile(){
     if [[ $@ = 'lock' ]]; then
         echo '[Info] Creating lock file'
         touch ~/.mcctl.lock 2>/dev/null
-        chmod 400 ~/.mcctl.lock 2>/dev/null
+        chmod 600 ~/.mcctl.lock 2>/dev/null
     fi
     if [[ $@ = 'check' ]]; then
         if [ -f '~/.mcctl.lock' ]; then
@@ -896,6 +896,9 @@ function startMinecraft(){
 
 ######Function End######
 flagsInput=$@
+if [[ ${flagsInput} =~ 'force-unlock' ]]; then
+    lockFile unlock
+fi
 lockFile check
 lockFile lock
 if [[ ${flagsInput} =~ 'save-conf' ]]; then
