@@ -384,9 +384,9 @@ function installRequirements(){
     echo '[Info] Installing requirements'
     detectPackageManager
     if [ ${packageManager} = 'pacman' ]; then
-        sudo pacman -S jre-openjdk-headless screen wget --noconfirm --needed
+        sudo pacman -S jre-openjdk-headless jdk8-openjdk git screen wget --noconfirm --needed
     elif [ ${packageManager} = 'apt' ]; then
-        sudo apt install -y default-jdk screen wget
+        sudo apt install -y default-jdk screen wget openjdk-8-jre-headless
     elif [ ${packageManager} = 'dnf' ]; then
         echo "[Critical] dnf not supported"
         exitScript 9
@@ -554,7 +554,11 @@ function buildSpigot(){
     echo "[Info] Downloading BuildTools for Spigot..."
     curl -O ${url}
     echo "[Info] Running BuildTools.jar"
-    java -jar $checkFile nogui --rev ${version} >/dev/null 2>/dev/null
+    if [ ${_verbose} = 1 ]; then
+        java -jar ${checkFile} nogui --rev ${version}
+    else
+        java -jar ${checkFile} nogui --rev ${version} >/dev/null 2>/dev/null
+    fi
     if [ ! $? = 0 ]; then
         exitScript 6
     fi
@@ -894,25 +898,32 @@ function startMinecraft(){
     lockFile lock
 }
 
+function processFlags(){
+    flagsInput=$@
+    if [[ ${flagsInput} =~ 'verbose' ]]; then
+        echo '[Info] Verbose mode is on'
+        export _verbose=1
+    fi
+    if [[ ${flagsInput} =~ 'force-unlock' ]]; then
+        lockFile unlock
+    fi
+    lockFile check
+    lockFile lock
+    if [[ ${flagsInput} =~ 'save-conf' ]]; then
+        saveConfig
+    fi
+    if [[ $@ =~ 'create-conf' ]]; then
+        createConf
+    fi
+    if [[ $@ = 'currentdirectory' ]]; then
+        serverPath=`pwd`
+    fi
+    if [[ $@ =~ 'latest' ]]; then
+        version=1.19
+    fi
+}
 ######Function End######
-flagsInput=$@
-if [[ ${flagsInput} =~ 'force-unlock' ]]; then
-    lockFile unlock
-fi
-lockFile check
-lockFile lock
-if [[ ${flagsInput} =~ 'save-conf' ]]; then
-    saveConfig
-fi
-if [[ $@ =~ 'create-conf' ]]; then
-    createConf
-fi
-if [[ $@ = currentdirectory ]]; then
-    serverPath=`pwd`
-fi
-if [[ $@ =~ latest ]]; then
-    version=1.19
-fi
+processFlags
 if [[ ! $@ ]]; then
     echo '[Info] No options detected! Trying to read saved settings'
     unset flagsInput
