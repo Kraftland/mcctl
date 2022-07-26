@@ -888,9 +888,9 @@ function processFlags(){
 }
 
 function runCommand(){
-    if [ ${_quiet} = 1 ]; then
+    if [[ ${_quiet} = 1 ]]; then
         $@ >/dev/null 2>/dev/null
-    elif [ ${_verbose} = 1 ]; then
+    elif [[ ${_verbose} = 1 ]]; then
         $@
     else
         $@ 1>/dev/null
