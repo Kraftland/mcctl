@@ -29,7 +29,7 @@ function acceptEula(){
             echo '[Info] Accepting eula'
             echo 'eula=true' >${serverPath}/eula.txt
         else
-            echo "[Info] Detected cancel key: ${confirm}"
+            echo "[Info] Detected cancel key"
         fi
     fi
 }
@@ -40,7 +40,7 @@ function chromedriverDownload(){
     echo '[Warn] This download method requires a X display'
     echo '[Warn] If you connect server via ssh, install xorg-xserver and add -Y argument to your ssh command'
     echo '[Warn] This argument will enable X11 forwarding, make sure you enabled it in ssh config!'
-    python3 /opt/mcctl/resources/chromedriver.py ${url}
+    runCommand "python3 /opt/mcctl/resources/chromedriver.py ${url}"
     if [ -f '~/下载/*.crdownload' ]; then #Detect Chinese environment since some idiot use Chinese as server's primary language
         mv ~/下载/*.crdownload ~/${checkFile}
     else
@@ -53,45 +53,37 @@ function chromedriverDownload(){
 function instWebdriver(){
     detectPackageManager
     if [ ${packageManager} = 'pacman' ]; then
-        sudo pacman -Sy
-        sudo pacman -S python-pip chromium --noconfirm --needed
+        runCommand sudo pacman -Sy
+        runCommand sudo pacman -S python-pip chromium --noconfirm --needed
     elif [ ${packageManager} = 'apt' ]; then
-        sudo apt update
-        sudo apt install python3-pip chromium -y
+        runCommand sudo apt update
+        runCommand sudo apt install python3-pip chromium -y
     elif [ ${packageManager} = 'dnf' ]; then
-        sudo dnf update
-        sudo dnf install python3-pip chromium -y
+        runCommand sudo dnf update
+        runCommand sudo dnf install python3-pip chromium -y
     fi
-    pip show undetected-chromedriver 1>/dev/null 2>/dev/null
+    runCommand pip show undetected-chromedriver
     if [[ $? = 1 ]]; then
         echo '[Info] Installing chromedriver'
-        pip install undetected-chromedriver==3.1.5 1>/dev/null
+        runCommand pip install undetected-chromedriver==3.1.5 1>/dev/null
     else
         echo '[Info] Updating chromedriver'
-        pip install undetected-chromedriver==3.1.5 1>/dev/null
+        runCommand pip install undetected-chromedriver==3.1.5 1>/dev/null
     fi
     while [[ $? = 1 ]]; do
         echo '[Warn] Retrying install chromedriver'
-        pip install undetected-chromedriver==3.1.5 1>/dev/null
+        runCommand pip install undetected-chromedriver==3.1.5 1>/dev/null
     done
 }
 
 #Install resources to opt
 function instResource(){
-    if [[ ${flagsInput} =~ 'archlinux' ]]; then
-        echo '[Info] Installing resources'
-        mkdir -p ${pkgdir}/opt/mcctl
-        mv resources ${pkgdir}/opt/mcctl/
-        rm -f ${pkgdir}/opt/mcctl/resources/demo.png
-        echo '[Info] Installed resources to /opt/mcctl'
-    else
-        echo '[Info] Installing resources'
-        sudo rm -rf /opt/mcctl 2>/dev/null
-        sudo mkdir -p /opt/mcctl
-        sudo mv resources /opt/mcctl/
-        sudo rm -f /opt/mcctl/resources/demo.png
-        echo '[Info] Installed resources to /opt/mcctl'
-    fi
+    echo '[Info] Installing resources'
+    runCommand sudo rm -rf /opt/mcctl
+    runCommand sudo mkdir -p /opt/mcctl
+    runCommand sudo mv resources /opt/mcctl/
+    runCommand sudo rm -f /opt/mcctl/resources/demo.png
+    echo '[Info] Installed resources to /opt/mcctl'
 
 }
 
@@ -99,8 +91,8 @@ function instResource(){
 function lockFile(){
     if [[ $@ = 'lock' ]]; then
         echo '[Info] Creating lock file'
-        touch ~/.mcctl.lock 2>/dev/null
-        chmod 600 ~/.mcctl.lock 2>/dev/null
+        runCommand touch ~/.mcctl.lock
+        runCommand chmod 600 ~/.mcctl.lock
     fi
     if [[ $@ = 'check' ]]; then
         if [ -f '~/.mcctl.lock' ]; then
@@ -109,7 +101,7 @@ function lockFile(){
     fi
     if [[ $@ = 'unlock' ]]; then
         echo '[Info] Deleting lock file'
-        rm -rf ~/.mcctl.lock 2>/dev/null
+        runCommand rm -rf ~/.mcctl.lock 2>/dev/null
     fi
 }
 
@@ -136,19 +128,19 @@ function readConf(){
         echo "[Warn] Configuration file missing"
     fi
     if [[ $@ =~ 'env' ]]; then
-        export serverPath=`cat ~/.config/mcctl/mcctl.conf | grep serverPath= | cut -c 12-`
-        export version=`cat ~/.config/mcctl/mcctl.conf | grep version= | cut -c 9-`
+        runCommand export serverPath=`cat ~/.config/mcctl/mcctl.conf | grep serverPath= | cut -c 12-`
+        runCommand export version=`cat ~/.config/mcctl/mcctl.conf | grep version= | cut -c 9-`
     fi
     if [[ $@ =~ 'flags' ]]; then
-        export flagsInput=`cat ~/.config/mcctl/mcctl.conf | grep flags= | cut -c 7-`
+        runCommand export flagsInput=`cat ~/.config/mcctl/mcctl.conf | grep flags= | cut -c 7-`
     fi
 }
 
 #Create conf
 function createConf(){
     echo '[Info] Creating config file'
-    mkdir -p ~/.config/mcctl
-    touch mcctl.conf
+    runCommand mkdir -p ~/.config/mcctl
+    runCommand touch mcctl.conf
 }
 
 #Save configuration to  >~/.config/mcctl/mcctl.conf
@@ -159,7 +151,7 @@ function saveConfig(){
         createConf
     fi
     echo "[Info] Overriding config"
-    rm ~/.config/mcctl/mcctl.conf
+    runCommand rm ~/.config/mcctl/mcctl.conf
     echo "serverPath=${serverPath}" >>~/.config/mcctl/mcctl.conf
     echo "version=${version}" >>~/.config/mcctl/mcctl.conf
     echo "flags=${flagsInput}" >>~/.config/mcctl/mcctl.conf
@@ -169,12 +161,12 @@ function saveConfig(){
 function detectInstalledFiles(){
     echo '[Info] Detecting installed files'
     for env in paperInstalled mojangInstalled spigotInstalled floodgateInstalled geyserInstalled mtvehiclesInstalled sacInstalled huskhomesInstalled; do
-        unset ${env}
+        runCommand unset ${env}
     done
-    unset env
+    runCommand unset env
     if [ -f ${serverPath}/paper-*.jar ]; then
         paperInstalled=true
-        mv ${serverPath}/paper-*.jar ${serverPath}/Paper-latest.jar 2>/dev/null
+        runCommand mv ${serverPath}/paper-*.jar ${serverPath}/Paper-latest.jar
         updateFlags="${updateFlags} paper"
     elif [ -f ${serverPath}/Paper-latest.jar ]; then
         paperInstalled=true
@@ -182,7 +174,7 @@ function detectInstalledFiles(){
     fi
     if [ -f ${serverPath}/server.jar ]; then
         mojangInstalled=true
-        mv ${serverPath}/server.jar ${serverPath}/Minecraft-latest.jar 2>/dev/null
+        runCommand mv ${serverPath}/server.jar ${serverPath}/Minecraft-latest.jar
         updateFlags="${updateFlags} mojang"
     elif [ -f ${serverPath}/Minecraft-latest.jar ]; then
         mojangInstalled=true
@@ -193,7 +185,7 @@ function detectInstalledFiles(){
         updateFlags="${updateFlags} spigot"
     elif [ -f ${serverPath}/spigot-*.jar ]; then
         spigotInstalled=true
-        mv ${serverPath}/spigot-*.jar ${serverPath}/Spigot-latest.jar 2>/dev/null
+        runCommand mv ${serverPath}/spigot-*.jar ${serverPath}/Spigot-latest.jar
         updateFlags="${updateFlags} spigot"
     fi
     if [ -f ${serverPath}/plugins/floodgate-spigot.jar ]; then
@@ -209,12 +201,12 @@ function detectInstalledFiles(){
         updateFlags="${updateFlags} mtvehicles"
     fi
     if [ -f ${serverPath}/plugins/SoaromaSAC*.jar ]; then
-        mv ${serverPath}/plugins/SoaromaSAC*.jar ${serverPath}/plugins/SoaromaSAC.jar 2>/dev/null
+        runCommand mv ${serverPath}/plugins/SoaromaSAC*.jar ${serverPath}/plugins/SoaromaSAC.jar
         sacInstalled=true
         updateFlags="${updateFlags} sac"
     fi
     if [ -f ${serverPath}/plugins/HuskHomes*.jar ]; then
-        mv ${serverPath}/plugins/HuskHomes*.jar ${serverPath}/plugins/HuskHomes.jar 2>/dev/null
+        runCommand mv ${serverPath}/plugins/HuskHomes*.jar ${serverPath}/plugins/HuskHomes.jar
         huskhomesInstalled=true
         updateFlags="${updateFlags} huskhomes"
     fi
@@ -232,7 +224,7 @@ function mergeBuildToolsLog(){
     echo '[Info] BuildTools log start'
     cat BuildTools.log.txt
     echo '[Info] BuildTools log end'
-    rm -f BuildTools.log.txt
+    runCommand rm -f BuildTools.log.txt
 }
 
 #Print copyright
@@ -244,10 +236,10 @@ function printCopyright(){
 function uninstallService(){
     checkServiceFileInstalled
     if [ ${service} = enabled ]; then
-        sudo systemctl disable --now mcctl.service
-        sudo rm -rf /etc/systemd/system/mcctl.service
+        runCommand sudo systemctl disable --now mcctl.service
+        runCommand sudo rm -rf /etc/systemd/system/mcctl.service
     elif [ ${service} = disabled ]; then
-        sudo rm -rf /etc/systemd/system/mcctl.service
+        runCommand sudo rm -rf /etc/systemd/system/mcctl.service
     else
         echo "[Warn] mcctl.service doesn't exist"
     fi
@@ -260,7 +252,7 @@ function checkScriptInstalled(){
         echo '[Info] mcctl detected and installed'
     else
         echo '[Info] mcctl missing, press Enter to install or any other key to abort'
-        unset confirm
+        runCommand unset confirm
         read confirm
         if [ ! ${confirm} ]; then
             installScript
@@ -288,51 +280,33 @@ function checkServiceFileInstalled(){
 
 #Install script
 function installScript(){
-    if [[ ${flagsInput} =~ 'archlinux' ]]; then
-        echo '[Info] Downloading script'
-        rm -rf mcctl 2>/dev/null
-        git clone https://github.com/Kimiblock/mcctl.git
-        if [ ! $? = 0 ]; then
-            exitScript 11
-        fi
-        echo '[Info] Installing script'
-        cd mcctl
-        instResource
-        sudo mkdir -p /usr/bin
-        sudo mv mcctl ${pkgdir}/usr/bin
-        sudo chmod +x ${pkgdir}/usr/bin/mcctl
-        echo '[Info] Script installed and updated'
-    else
-        echo '[Info] Downloading script'
-        rm -rf mcctl 2>/dev/null
-        git clone https://github.com/Kimiblock/mcctl.git 2>/dev/null 1>/dev/null
-        if [ ! $? = 0 ]; then
-            exitScript 11
-        fi
-        echo '[Info] Installing script, asking root permission'
-        pathPrevious=`pwd`
-        cd mcctl
-        instResource
-        #instWebdriver
-        #mv mcctl.sh mcctl
-        sudo mv mcctl /usr/bin
-        if [ ! $? = 0 ]; then
-            exitScript 12
-        fi
-        sudo chmod +x /usr/bin/mcctl
-        if [ ! $? = 0 ]; then
-            exitScript 12
-        fi
-        cd ${pathPrevious}
-        rm -rf mcctl
-        echo '[Info] Script installed and updated'
+    echo '[Info] Downloading script'
+    runCommand rm -rf mcctl
+    runCommand git clone https://github.com/Kimiblock/mcctl.git
+    if [ ! $? = 0 ]; then
+        exitScript 11
     fi
+    echo '[Info] Installing script, asking root permission'
+    pathPrevious=`pwd`
+    cd mcctl
+    instResource
+    runCommand sudo mv mcctl /usr/bin
+    if [ ! $? = 0 ]; then
+        exitScript 12
+    fi
+    runCommand sudo chmod +x /usr/bin/mcctl
+    if [ ! $? = 0 ]; then
+        exitScript 12
+    fi
+    runCommand cd ${pathPrevious}
+    runCommand rm -rf mcctl
+    echo '[Info] Script installed and updated'
 }
 
 #Uninstall script
 function uninstallScript(){
     echo '[Info] Uninstalling mcctl from your system'
-    sudo rm -rf /usr/bin/mcctl
+    runCommand sudo rm -rf /usr/bin/mcctl
     echo '[Info] Uninstalled mcctl from your system'
 
 }
@@ -350,7 +324,7 @@ ExecStart=env version=${version} serverPath=${serverPath} mcctl ${flags}
 [Install]
 WantedBy=multi-user.target
     """ >mcctl.service
-    sleep 3s
+    runCommand sleep 3s
     if [ ! ${EDITOR} ]; then
         nano mcctl.service
     else
@@ -359,8 +333,8 @@ WantedBy=multi-user.target
     echo "[Info] Type 'Confirm' to confirm or any other key to cancel"
     read checkConfirm
     if [ ${checkConfirm} = 'Confirm' ]; then
-        sudo mv mcctl.service /etc/systemd/system/
-        sudo systemctl enable mcctl.service
+        runCommand sudo mv mcctl.service /etc/systemd/system/
+        runCommand sudo systemctl enable mcctl.service
     else
         echo '[Info] Cancelled'
     fi
@@ -369,7 +343,7 @@ WantedBy=multi-user.target
 #Check systemd function
 function checkSystemd(){
     echo '[Info] Checking if you have systemd installed'
-    systemctl --version 1>/dev/null 2>/dev/null
+    runCommand systemctl
     if [ $? = 127 ]; then
         exitScript 10
     elif [ $? = 0 ]; then
@@ -384,9 +358,9 @@ function installRequirements(){
     echo '[Info] Installing requirements'
     detectPackageManager
     if [ ${packageManager} = 'pacman' ]; then
-        sudo pacman -S jre-openjdk-headless jdk8-openjdk git screen wget --noconfirm --needed
+        runCommand sudo pacman -S jre-openjdk-headless jdk8-openjdk git screen wget --noconfirm --needed
     elif [ ${packageManager} = 'apt' ]; then
-        sudo apt install -y default-jdk screen wget openjdk-8-jre-headless
+        runCommand sudo apt install -y default-jdk screen wget openjdk-8-jre-headless
     elif [ ${packageManager} = 'dnf' ]; then
         echo "[Critical] dnf not supported"
         exitScript 9
@@ -397,7 +371,7 @@ function installRequirements(){
 #Check Screen
 function checkScreen(){
     echo '[Info]Checking if you have already installed screen'
-    screen --version 2>/dev/null
+    runCommand screen --version
     if [[ $? =~ 127 ]]; then
         exitScript 8
     fi
@@ -420,14 +394,14 @@ function cleanFile(){
     if [[ $@ =~ 'buildTools' ]]; then
         echo '[Info] Cleaning Spigot leftovers'
         for trash in 'apache-maven-3.6.0' 'BuildData' 'Bukkit' 'CraftBukkit' 'Spigot' 'work'; do
-            rm -fr ${trash} 1>/dev/null 2>/dev/null
+            runCommand rm -fr ${trash} 1>/dev/null 2>/dev/null
         done
     unset trash
     fi
     if [[ $@ =~ 'log' ]]; then
         echo '[Info] Cleaning logs'
         for logFiles in 'mcctl.log' 'BuildTools.log.txt' 'wget-log' 'mcctl_debug.log'; do
-            rm -f ${logFiles}
+            runCommand rm -f ${logFiles}
         done
         unset logFiles
     fi
@@ -437,7 +411,7 @@ function cleanFile(){
         unset confirm
         read -p '[Warn] Do you want to completely delete mcctl configs?[y/n]: ' confirm
         if [ ${confirm} = y ]; then
-            rm -rf ~/.config/mcctl
+            runCommand rm -rf ~/.config/mcctl
         fi
     fi
 
@@ -497,8 +471,8 @@ function exitScript(){
 function createFolder(){
     if [ ! -d ${serverPath} ]; then
         echo '[Info] Path to server is empty, creating new directory'
-        mkdir -p ${serverPath}
-        mkdir -p ${serverPath}/plugins
+        runCommand mkdir -p ${serverPath}
+        runCommand mkdir -p ${serverPath}/plugins
         if [ $? = 1 ]; then
         echo '[Info] mkdir returned error code 1, retrying with sudo'
             if [ $@ =~ 'unattended' ]; then
@@ -508,7 +482,7 @@ function createFolder(){
                 if [ `whoami` = root ]; then
                     exitScript 2
                 else
-                    sudo mkdir -p ${serverPath}/plugins
+                    runCommand sudo mkdir -p ${serverPath}/plugins
                 fi
             fi
         fi
@@ -518,11 +492,11 @@ function createFolder(){
     fi
     if [ ! -d ${serverPath}/plugins ]; then
         echo '[Info] Plugins folder not found, trying to create'
-        mkdir -p ${serverPath}/plugins
+        runCommand mkdir -p ${serverPath}/plugins
         if [ $? = 1 ]; then
             echo '[Info] mkdir failed, trying with root'
             if [[ $@ =~ 'unattended' ]]; then
-                sudo mkdir -p ${serverPath}/plugins
+                runCommand sudo mkdir -p ${serverPath}/plugins
             else
                 echo '[Warn] unattended flag detected'
                 exitScript 2
@@ -542,8 +516,8 @@ function buildMojang(){
     if [ ${version} = 1.19 ]; then
         url=https://launcher.mojang.com/v1/objects/e00c4052dac1d59a1188b2aa9d5a87113aaf1122/server.jar
     fi
-    curl -O ${url}
-    mv server.jar Minecraft-latest.jar
+    runCommand curl -O ${url}
+    runCommand mv server.jar Minecraft-latest.jar
     update Minecraft-latest.jar
 }
 
@@ -552,18 +526,14 @@ function buildSpigot(){
     url="https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
     checkFile='BuildTools.jar'
     echo "[Info] Downloading BuildTools for Spigot..."
-    curl -O ${url}
+    runCommand curl -O ${url}
     echo "[Info] Running BuildTools.jar"
-    if [ ${_verbose} = 1 ]; then
-        java -jar ${checkFile} nogui --rev ${version}
-    else
-        java -jar ${checkFile} nogui --rev ${version} >/dev/null 2>/dev/null
-    fi
+    runCommand java -jar ${checkFile} nogui --rev ${version}
     if [ ! $? = 0 ]; then
         exitScript 6
     fi
-    rm -rf ${checkConfig}
-    mv spigot-*.jar Spigot-latest.jar
+    runCommand rm -rf ${checkConfig}
+    runCommand mv spigot-*.jar Spigot-latest.jar
     update Spigot-latest.jar
 }
 
@@ -614,22 +584,22 @@ checkConfig(){
 #removeJarFile
 function clean(){
     echo "[Info] Cleaning"
-    rm -rf *.jar 1>/dev/null 2>/dev/null
-    rm -rf *.check 1>/dev/null 2>/dev/null
-    rm -rf *.1 1>/dev/null 2>/dev/null
-    rm -rf *.2 1>/dev/null 2>/dev/null
+    runCommand rm -rf *.jar
+    runCommand rm -rf *.check
+    runCommand rm -rf *.1
+    runCommand rm -rf *.2
 }
 #moveFile
 function update(){
     echo "[Info] Updating jar file..."
     if [[ $@ = "Paper-latest.jar" ]]; then
-        mv $@ ${serverPath}
+        runCommand mv $@ ${serverPath}
     elif [[ $@ = "Spigot-latest.jar" ]]; then
-        mv $@ ${serverPath}
+        runCommand mv $@ ${serverPath}
     elif [[ $@ = "Minecraft-latest.jar" ]]; then
-        mv $@ ${serverPath}
+        runCommand mv $@ ${serverPath}
     else
-        mv $@ ${serverPath}/plugins
+        runCommand mv $@ ${serverPath}/plugins
     fi
 }
 #versionCompare
@@ -640,7 +610,7 @@ function versionCompare(){
     else
         checkPath="${serverPath}"
     fi
-    diff -q "${checkPath}/${checkFile}" "${checkFile}" >/dev/null 2>/dev/null
+    runCommand diff -q "${checkPath}/${checkFile}" "${checkFile}"
     return $?
 }
 #integrityProtect
@@ -651,29 +621,17 @@ function integrityProtect(){
         return 0
     else
         echo "[Info] Verifing ${checkFile}"
-        #if [ ${isPlugin} = false ]; then
-        #    checkFile=Paper-latest.jar
-        #    wget $url >/dev/null 2>/dev/null
-        #    mv paper-*.jar Paper-latest.jar.check
-        #    diff -q Paper-latest.jar.check Paper-latest.jar >/dev/null 2>/dev/null
-        #    return $?
-        #else
-        #    mv $checkFile "${checkFile}.check"
-        #    wget $url >/dev/null 2>/dev/null
-        #    diff -q $checkFile "${checkFile}.check" >/dev/null 2>/dev/null
-        #    return $?
-        #fi
-        mv ${checkFile} ${checkFile}.check
-        wget ${url} >/dev/null 2>/dev/null
+        runCommand mv ${checkFile} ${checkFile}.check
+        runCommand wget ${url}
         if [ -f paper-*.jar ]; then
-            mv paper-*.jar Paper-latest.jar
+            runCommand mv paper-*.jar Paper-latest.jar
         elif [ -f server*.jar ]; then
-            mv server.jar Minecraft-latest.jar
+            runCommand mv server.jar Minecraft-latest.jar
         elif [ -f SoaromaSAC-*.jar ]; then
-            mv SoaromaSAC-*.jar SoaromaSAC.jar
+            runCommand mv SoaromaSAC-*.jar SoaromaSAC.jar
         fi
         unset different
-        diff -q ${checkFile} ${checkFile}.check
+        runCommand diff -q ${checkFile} ${checkFile}.check
         different=$?
     fi
     if [ ${different} = 1 ]; then
@@ -681,18 +639,18 @@ function integrityProtect(){
         redownload
     elif [ ${different} = 0 ]; then
         echo "[Info] Ckecking job done, ${ckeckFile} verified."
-        rm -rf *.check
+        runCommand rm -rf *.check
     fi
 }
 function redownload(){
     clean
     if [ ${isPlugin} = false ]; then
         checkFile=Paper-latest.jar
-        wget $url >/dev/null 2>/dev/null
-        mv paper-*.jar Paper-latest.jar
+        runCommand wget $url
+        runCommand mv paper-*.jar Paper-latest.jar
         integrityProtect
     else
-        wget $url >/dev/null 2>/dev/null
+        runCommand wget $url
         integrityProtect
     fi
 }
@@ -709,40 +667,23 @@ function pluginUpdate(){
         echo "[Warn] Sorry, but we don't have your plugin's download url. Please wait for support~"
     fi
     echo "[Info] Downloading ${pluginName}"
-    wget $url >/dev/null 2>/dev/null
+    runCommand wget $url
     isPlugin=true
 }
 #systemUpdate
 function systemUpdate(){
-    if [[ $@ =~ 'nosudo' ]]; then
-        if [ ${packageManager} = apt ]; then
-            echo "[Info] Updating using apt..."
-            apt -y full-upgrade
-        elif [ ${packageManager} = dnf ]; then
-            echo "[Info] Updating using dnf..."
-            dnf -y update
-        elif [ ${packageManager} = pacman ]; then
-            echo "[Info] Updating using pacman..."
-            pacman --noconfirm -Syyu
-        else
-            unset packageManager
-            echo "[Critical] Package manager not found!"
-            exitScript 5
-        fi
+    if [ ${packageManager} = apt ]; then
+        echo "[Info] Updating using apt..."
+        runCommand sudo apt -y full-upgrade
+    elif [ ${packageManager} = dnf ]; then
+        echo "[Info] Updating using dnf..."
+        runCommand sudo dnf -y update
+    elif [ ${packageManager} = pacman ]; then
+        echo "[Info] Updating using pacman..."
+        runCommand sudo pacman --noconfirm -Syyu
     else
-        if [ ${packageManager} = apt ]; then
-            echo "[Info] Updating using apt..."
-            sudo apt -y full-upgrade
-        elif [ ${packageManager} = dnf ]; then
-            echo "[Info] Updating using dnf..."
-            sudo dnf -y update
-        elif [ ${packageManager} = pacman ]; then
-            echo "[Info] Updating using pacman..."
-            sudo pacman --noconfirm -Syyu
-        else
-            unset packageManager
-            exitScript 5
-        fi
+        unset packageManager
+        exitScript 5
     fi
 }
 
@@ -752,11 +693,11 @@ function buildPaper(){
         export build=`expr ${build} - 1`
         echo "[Info] Testing build ${build}"
         url="https://papermc.io/api/v2/projects/paper/versions/${version}/builds/${build}/downloads/paper-${version}-${build}.jar"
-        wget $url >/dev/null 2>/dev/null
+        runCommand wget $url
     done
     echo "[Info] Downloaded build ${build}."
     if [ -f paper-*.jar ]; then
-        mv paper-*.jar Paper-latest.jar
+        runCommand mv paper-*.jar Paper-latest.jar
     fi
     export isPlugin=false
     export checkFile=Paper-latest.jar
@@ -774,7 +715,7 @@ function buildPaper(){
 
 #32-bit Warning
 function checkBit(){
-    getconf LONG_BIT >/dev/null 2>/dev/null
+    runCommand getconf LONG_BIT
     return $?
     if [ $? = 64 ]; then
         echo "[Info] Running on 64-bit system."
@@ -843,7 +784,6 @@ function updateMain(){
         detectPackageManager $@
         systemUpdate $@
     fi
-    #rm -rf ${serverPath}/plugins/BuildTools.jar #Due to a unknown bug
     clean
     echo "[Info] Job finished at `date`, have a nice day~"
     exitScript 0
@@ -851,40 +791,41 @@ function updateMain(){
 
 #Start Minecraft server
 function startMinecraft(){
+    echo '[Info] Deleting lock file'
     lockFile unlock
     echo '[Info] Attempting to start Minecraft server'
-    if [[ $@ =~ 'd' ]]; then
+    if [[ ${flagsInput} =~ 'd' ]]; then
         checkScreen
     fi
     if [ ! -f ${serverPath} *-latest.jar ]; then
         exitScript 7
     fi
-    if [[ $@ =~ 'spigot' ]]; then
+    if [[ ${flagsInput} =~ 'spigot' ]]; then
         if [ -f ${serverPath}/spigot-*.jar ]; then
-            mv ${serverPath}/spigot-*.jar ${serverPath}/Spigot-latest.jar
+            runCommand mv ${serverPath}/spigot-*.jar ${serverPath}/Spigot-latest.jar
         fi
         cd ${serverPath}
-        if [[ $@ =~ 'd' ]]; then
+        if [[ ${flagsInput} =~ 'd' ]]; then
             screenName='spigot' screenCommand='java -jar Spigot-latest.jar nogui' createScreen
         else
             java -jar Spigot-latest.jar
         fi
-    elif [[ $@ =~ 'paper' ]]; then
+    elif [[ ${flagsInput} =~ 'paper' ]]; then
         if [ -f ${serverPath}/paper-*.jar ]; then
             mv ${serverPath}/paper-*.jar ${serverPath}/Paper-latest.jar
         fi
         cd ${serverPath}
-        if [[ $@ =~ 'd' ]]; then
+        if [[ ${flagsInput} =~ 'd' ]]; then
             screenName='paper' screenCommand='java -jar Paper-latest.jar nogui' createScreen
         else
             java -jar Paper-latest.jar
         fi
-    elif [[ $@ =~ 'mojang' ]]; then
+    elif [[ ${flagsInput} =~ 'mojang' ]]; then
         if [ -f ${serverPath}/server.jar ]; then
             mv ${serverPath}/server.jar ${serverPath}/Minecraft-latest.jar
         fi
         cd ${serverPath}
-        if [[ $@ =~ 'd' ]]; then
+        if [[ ${flagsInput} =~ 'd' ]]; then
             screenName='minecraft' screenCommand='java -jar Minecraft-latest.jar nogui' createScreen
         else
             java -jar Minecraft-latest.jar
@@ -899,16 +840,36 @@ function startMinecraft(){
 }
 
 function processFlags(){
+    unset _quiet
+    unset _verbose
     flagsInput=$@
-    if [[ ${flagsInput} =~ 'verbose' ]]; then
+    if [[ ${flagsInput} =~ 'install' ]]; then
+        installScript
+        exit 0
+    fi
+    if [[ ! $@ ]]; then
+        echo '[Info] No options detected! Trying to read saved settings'
+        unset flagsInput
+        readConf flags
+    fi
+    if [ ! ${serverPath} ]; then
+        readConf env
+    fi
+    if [ ! ${version} ]; then
+        readConf env
+    fi
+    if [[ ${flagsInput} =~ '--verbose' ]]; then
         echo '[Info] Verbose mode is on'
         export _verbose=1
+    elif [[ ${flagsInput} =~ '--quiet' ]]; then
+        echo '[Info] Quiet mode is on'
+        export _quiet=1
     fi
     if [[ ${flagsInput} =~ 'force-unlock' ]]; then
         lockFile unlock
     fi
     lockFile check
-    lockFile lock
+    #lockFile lock
     if [[ ${flagsInput} =~ 'save-conf' ]]; then
         saveConfig
     fi
@@ -921,30 +882,28 @@ function processFlags(){
     if [[ $@ =~ 'latest' ]]; then
         version=1.19
     fi
+    if [[ ${flagsInput} =~ 'start' ]]; then
+        startMinecraft ${flagsInput}
+    fi
+}
+
+function runCommand(){
+    if [ ${_quiet} = 1 ]; then
+        $@ >/dev/null 2>/dev/null
+    elif [ ${_verbose} = 1 ]; then
+        $@
+    else
+        $@ 1>/dev/null
+    fi
 }
 ######Function End######
 processFlags
-if [[ ! $@ ]]; then
-    echo '[Info] No options detected! Trying to read saved settings'
-    unset flagsInput
-    readConf flags
-fi
-if [ ! ${serverPath} ]; then
-    readConf env
-fi
-if [ ! ${version} ]; then
-    readConf env
-fi
 echo "[Info] Hello! `whoami` at `date`"
 printCopyright
 checkBit
 echo "[Info] Reading settings"
 clean 1>/dev/null 2>/dev/null
 checkConfig
-if [[ ${flagsInput} =~ 'install' ]]; then
-    installScript
-    exit 0
-fi
 if [[ $@ =~ 'newserver' ]]; then
     createFolder $@
     acceptEula
@@ -982,13 +941,5 @@ fi
 if [[ ${flagsInput} =~ clean ]]; then
     cleanFile buildTools
     cleanFile log
-fi
-
-if [[ ${flagsInput} =~ startminecraft ]]; then
-    if [[ ${flagsInput} = 'unattended' ]]; then
-        startMinecraft ${flagsInput} d
-    else
-        startMinecraft ${flagsInput}
-    fi
 fi
 lockFile unlock

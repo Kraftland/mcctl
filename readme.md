@@ -42,8 +42,6 @@ Examples using yay:
 yay -S mcctl-git
 ```
 
-
-
 ### Other Linux
 
 ```bash
@@ -74,26 +72,24 @@ mcctl --update --[options]
 
 
 
-| Options      | Effects                                                      |
-| ------------ | ------------------------------------------------------------ |
-| mojang       | Update Mojang server.                                        |
-| spigot       | Update spigot.                                               |
-| paper        | Update paper.                                                |
-| sac          | Update SoaromaSAC                                            |
-| floodgate    | Update floodgate.                                            |
-| geyser       | Update geyser.                                               |
-| systemupdate | Fully update your system. ( Run with `sudo` when `-unattended` activated! ) |
-| unsafe       | Disable default protecting.                                  |
-| outtolog     | Redirect output to several log files.                        |
-| newserver    | Automatically create server folder.                          |
-| nosudo       | Do not use sudo for system update.                           |
-| clean        | Clean leftovers.                                             |
-| mtvehicles   | Update mtvehicles (Unnecessary because you can update plugin by /mtv update) |
+| Options        | Effects                                                      |
+| -------------- | ------------------------------------------------------------ |
+| mojang         | Update Mojang server.                                        |
+| spigot         | Update spigot.                                               |
+| paper          | Update paper.                                                |
+| sac            | Update SoaromaSAC                                            |
+| floodgate      | Update floodgate.                                            |
+| geyser         | Update geyser.                                               |
+| --systemupdate | Fully update your system. ( Run with `sudo` when `-unattended` activated! ) |
+| --unsafe       | Disable default protecting.                                  |
+| --newserver    | Automatically create server folder.                          |
+| --clean        | Clean leftovers.                                             |
+| mtvehicles     | Update mtvehicles (Unnecessary because you can update plugin by /mtv update) |
 
 ## Load server at startup
 
 ```bash
-[Environment Variables] mcctl --start --[Server name] -d
+[Environment Variables] mcctl --start [Server name] --d
 ```
 
 | Server name | Effects             |
@@ -114,11 +110,20 @@ Next time you use `mcctl`, just type `mcctl`. Script will automatically remember
 
 ## Install requirements (Currently beta, only pacman and apt recive full support)
 
-| Options | Effects              |
-| ------- | -------------------- |
-| instreq | Install requirements |
+| Options   | Effects              |
+| --------- | -------------------- |
+| --instreq | Install requirements |
 
 # Tips and tricks
+
+Control what will `mcctl` output. Enter options to control
+
+| Options   | Effects         |
+| --------- | --------------- |
+| --verbose | Output anything |
+| --quiet   | Hide outputs    |
+
+
 
 ## Delete BuildTools' cache and script's logs
 
