@@ -1,50 +1,31 @@
 #!/bin/bash
 
+######Function Start######
+#Store download urls
 function getUrl(){
-    unset url
-    if [[ $1 = 'eula' ]]; then
-        export url=https://account.mojang.com/documents/minecraft_eula
-    elif [[ $1 = 'mojang-1.19' ]]; then
-        export url=https://launcher.mojang.com/v1/objects/e00c4052dac1d59a1188b2aa9d5a87113aaf1122/server.jar
-    elif [[ $1 = 'buildtools' ]]; then
-        export url="https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
-    elif [[ $1 = 'floodgate' ]]; then
-        export url=https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/lastSuccessfulBuild/artifact/spigot/target/floodgate-spigot.jar
-    elif [[ $1 = 'geyser' ]]; then
-        export url=https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/lastSuccessfulBuild/artifact/bootstrap/spigot/target/Geyser-Spigot.jar
-    elif [[ $1 = 'paper' ]]; then
-        export url="https://papermc.io/api/v2/projects/paper/versions/${version}/builds/${build}/downloads/paper-${version}-${build}.jar"
-    elif [[ $1 = 'mtvehicles' ]]; then
-        export url='https://www.spigotmc.org/resources/mtvehicles-vehicle-plugin-free-downloadable.80910/download?version=456797'
-    elif [[ $1 = 'sac' ]]; then
-        export url='https://www.spigotmc.org/resources/soaromasac-lightweight-cheat-detection-system.87702/download?version=459815'
-    else
-        echo '[Critical] Url not found!'
-    fi
+    echo "[Info] Finding url"
 }
-
+#Open eula website
 function openEula(){
-    getUrl eula
-    echo '[Info] Starting xdg-open'
-    runCommand xdg-open --version
+    xdg-open --version 1>/dev/null 2>/dev/null
     if [[ $? = 0 ]]; then
-        echo "[Info] Opening eula page or manually visit ${url}"
-        screenName=eulaTemp screenCommand="xdg-open ${url}" createScreen
+        echo '[Info] Opening eula page or manually visit https://account.mojang.com/documents/minecraft_eula'
+        screenName=eulaTemp screenCommand="xdg-open 'https://account.mojang.com/documents/minecraft_eula" createScreen
     else
-        echo "[Warn] Please read the eula from mojang, please read eula from Mojang(${url})"
+        echo '[Warn] Please read the eula from mojang, please read eula from Mojang(https://account.mojang.com/documents/minecraft_eula)'
     fi
 }
 
 #Accept Eula
 function acceptEula(){
-    if [[ ${flagsInput} =~ '--unattended' ]]; then
-        echo '[Warn] Please read the eula from mojang, please read eula from Mojang'
+    if [[ ${flagsInput} =~ 'unattended' ]]; then
+        echo '[Warn] Please read the eula from mojang, please read eula from Mojang(https://account.mojang.com/documents/minecraft_eula)'
         echo 'eula=true' >${serverPath}/eula.txt
     else
         openEula
         unset confirm
-        read -p "[Warn] Enter 'Y' to proceed or any other key to cancel:" confirm
-        if [[ ${confirm} = "Y" ]]; then
+        read -p "[Warn] Enter 'Y' to proceed or any other key to cancel" confirm
+        if [ ${confirm} = Y ]; then
             echo '[Info] Accepting eula'
             echo 'eula=true' >${serverPath}/eula.txt
         else
@@ -95,6 +76,7 @@ function instWebdriver(){
     done
 }
 
+#Install resources to opt
 function instResource(){
     echo '[Info] Installing resources'
     runCommand sudo rm -rf /opt/mcctl
@@ -102,8 +84,10 @@ function instResource(){
     runCommand sudo mv resources /opt/mcctl/
     runCommand sudo rm -f /opt/mcctl/resources/demo.png
     echo '[Info] Installed resources to /opt/mcctl'
+
 }
 
+#Generate a lock file to prevent more than one processes running
 function lockFile(){
     if [[ $@ = 'lock' ]]; then
         echo '[Info] Creating lock file'
@@ -121,6 +105,7 @@ function lockFile(){
     fi
 }
 
+#Check if using zsh
 function checkBash(){
     if [[ ${SHELL} =~ zsh ]]; then
         if [[ ${flagsInput} =~ 'unattended' ]]; then
@@ -135,6 +120,7 @@ function checkBash(){
     fi
 }
 
+#Read configurations from  >~/.config/mcctl/mcctl.conf
 function readConf(){
     if [ -f ~/.config/mcctl/mcctl.conf ]; then
         echo '[Info] mcctl config file detected'
@@ -150,12 +136,14 @@ function readConf(){
     fi
 }
 
+#Create conf
 function createConf(){
     echo '[Info] Creating config file'
     runCommand mkdir -p ~/.config/mcctl
     runCommand touch mcctl.conf
 }
 
+#Save configuration to  >~/.config/mcctl/mcctl.conf
 function saveConfig(){
     if [ -f ~/.config/mcctl/mcctl.conf ]; then
         echo '[Info] mcctl config file detected'
@@ -169,6 +157,7 @@ function saveConfig(){
     echo "flags=${flagsInput}" >>~/.config/mcctl/mcctl.conf
 }
 
+#Detect installed files
 function detectInstalledFiles(){
     echo '[Info] Detecting installed files'
     for env in paperInstalled mojangInstalled spigotInstalled floodgateInstalled geyserInstalled mtvehiclesInstalled sacInstalled huskhomesInstalled; do
@@ -230,6 +219,7 @@ function detectInstalledFiles(){
     fi
 }
 
+#Merge BuildTools log to script log
 function mergeBuildToolsLog(){
     echo '[Info] BuildTools log start'
     cat BuildTools.log.txt
@@ -237,10 +227,12 @@ function mergeBuildToolsLog(){
     runCommand rm -f BuildTools.log.txt
 }
 
+#Print copyright
 function printCopyright(){
     echo '[Info] This script is written by Kimiblock.'
 }
 
+#removeScript
 function uninstallService(){
     checkServiceFileInstalled
     if [ ${service} = enabled ]; then
@@ -253,6 +245,7 @@ function uninstallService(){
     fi
 }
 
+#Check installed
 function checkScriptInstalled(){
     echo '[Info] Checking if you have mcctl installed'
     if [ -f /usr/bin/mcctl ]; then
@@ -269,6 +262,7 @@ function checkScriptInstalled(){
     fi
 }
 
+#Check service file installed
 function checkServiceFileInstalled(){
     echo '[Info] Checking if you have mcctl service installed'
     if [ -f /etc/systemd/system/mcctl.service ]; then
@@ -283,6 +277,8 @@ function checkServiceFileInstalled(){
     fi
 }
 
+
+#Install script
 function installScript(){
     echo '[Info] Downloading script'
     runCommand rm -rf mcctl
@@ -307,27 +303,18 @@ function installScript(){
     echo '[Info] Script installed and updated'
 }
 
+#Uninstall script
 function uninstallScript(){
     echo '[Info] Uninstalling mcctl from your system'
     runCommand sudo rm -rf /usr/bin/mcctl
     echo '[Info] Uninstalled mcctl from your system'
+
 }
 
-function checkSystemd(){
-    echo '[Info] Checking if you have systemd installed'
-    runCommand systemctl
-    if [ $? = 127 ]; then
-        exitScript 10
-    elif [ $? = 0 ]; then
-        echo '[Info] Systemd installed and functioned correctly'
-    else
-        echo "[Warn] Systemd installed but returned an error code $?"
-    fi
-}
-
+#Create service file
 function createStartupService(){
     checkSystemd
-    flags=`echo ${flagsInput} | cut -c 10-`
+    flags=`echo $@ | cut -c 10-`
     echo '[Info] Creating service file'
     echo """
 [Unit]
@@ -353,6 +340,20 @@ WantedBy=multi-user.target
     fi
 }
 
+#Check systemd function
+function checkSystemd(){
+    echo '[Info] Checking if you have systemd installed'
+    runCommand systemctl
+    if [ $? = 127 ]; then
+        exitScript 10
+    elif [ $? = 0 ]; then
+        echo '[Info] Systemd installed and functioned correctly'
+    else
+        echo "[Warn] Systemd installed but returned an error code $?"
+    fi
+}
+
+#Install prerequests
 function installRequirements(){
     echo '[Info] Installing requirements'
     detectPackageManager
@@ -367,6 +368,7 @@ function installRequirements(){
     echo '[Info] Finished installing requirements'
 }
 
+#Check Screen
 function checkScreen(){
     echo '[Info]Checking if you have already installed screen'
     runCommand screen --version
@@ -375,6 +377,7 @@ function checkScreen(){
     fi
 }
 
+#Create Screen
 function createScreen(){
     echo "[Info] Creating new screen ${screenName}.${screenId}"
     screen -dmS ${screenName}
@@ -384,6 +387,9 @@ function createScreen(){
     echo '[Info] Screen created'
 }
 
+
+
+#Clean leftovers
 function cleanFile(){
     if [[ $@ =~ 'buildTools' ]]; then
         echo '[Info] Cleaning Spigot leftovers'
@@ -408,8 +414,10 @@ function cleanFile(){
             runCommand rm -rf ~/.config/mcctl
         fi
     fi
+
 }
 
+#Exit script
 function exitScript(){
     if [ $@ = 0 ]; then
     exit $@
@@ -459,6 +467,7 @@ function exitScript(){
     fi
 }
 
+#Create folders for the first time
 function createFolder(){
     if [ ! -d ${serverPath} ]; then
         echo '[Info] Path to server is empty, creating new directory'
@@ -502,15 +511,19 @@ function createFolder(){
     fi
 }
 
+#Build origin server
 function buildMojang(){
-    getUrl mojang-${version}
+    if [ ${version} = 1.19 ]; then
+        url=https://launcher.mojang.com/v1/objects/e00c4052dac1d59a1188b2aa9d5a87113aaf1122/server.jar
+    fi
     runCommand curl -O ${url}
     runCommand mv server.jar Minecraft-latest.jar
     update Minecraft-latest.jar
 }
 
+#Build Spigot
 function buildSpigot(){
-    getUrl buildtools
+    url="https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
     checkFile='BuildTools.jar'
     echo "[Info] Downloading BuildTools for Spigot..."
     runCommand curl -O ${url}
@@ -524,6 +537,7 @@ function buildSpigot(){
     update Spigot-latest.jar
 }
 
+#testPackageManager
 function detectPackageManager(){
     echo "[Info] Detecting package manager..."
     if [[ $@ =~ 'nosudo' ]]; then
@@ -554,7 +568,7 @@ function detectPackageManager(){
         fi
     fi
 }
-
+#checkConfig
 checkConfig(){
     checkBash
     if [ ! ${version} ]; then
@@ -567,7 +581,7 @@ checkConfig(){
         export build=400
     fi
 }
-
+#removeJarFile
 function clean(){
     echo "[Info] Cleaning"
     runCommand rm -rf *.jar
@@ -575,7 +589,7 @@ function clean(){
     runCommand rm -rf *.1
     runCommand rm -rf *.2
 }
-
+#moveFile
 function update(){
     echo "[Info] Updating jar file..."
     if [[ $@ = "Paper-latest.jar" ]]; then
@@ -588,7 +602,7 @@ function update(){
         runCommand mv $@ ${serverPath}/plugins
     fi
 }
-
+#versionCompare
 function versionCompare(){
     echo "[Info] Making sure you're up to date."
     if [ $isPlugin = true ]; then
@@ -599,7 +613,7 @@ function versionCompare(){
     runCommand diff -q "${checkPath}/${checkFile}" "${checkFile}"
     return $?
 }
-
+#integrityProtect
 function integrityProtect(){
     echo "[Info] Checking file integrity."
     if [[ $@ =~ "unsafe" ]]; then
@@ -628,7 +642,6 @@ function integrityProtect(){
         runCommand rm -rf *.check
     fi
 }
-
 function redownload(){
     clean
     if [ ${isPlugin} = false ]; then
@@ -641,15 +654,15 @@ function redownload(){
         integrityProtect
     fi
 }
-
+#pluginUpdate
 function pluginUpdate(){
     echo "[Info] Updating ${checkFile}"
     if [ $@ = Floodgate ]; then
         pluginName="$@"
-        getUrl floodgate
+        url="https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/lastSuccessfulBuild/artifact/spigot/target/floodgate-spigot.jar"
     elif [ $@ = Geyser ]; then
         pluginName="$@"
-        getUrl geyser
+        url="https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/lastSuccessfulBuild/artifact/bootstrap/spigot/target/Geyser-Spigot.jar"
     else
         echo "[Warn] Sorry, but we don't have your plugin's download url. Please wait for support~"
     fi
@@ -657,7 +670,7 @@ function pluginUpdate(){
     runCommand wget $url
     isPlugin=true
 }
-
+#systemUpdate
 function systemUpdate(){
     if [ ${packageManager} = apt ]; then
         echo "[Info] Updating using apt..."
@@ -674,13 +687,13 @@ function systemUpdate(){
     fi
 }
 
+#buildPaper
 function buildPaper(){
-    getUrl paper
     while [ ! -f paper-*.jar ]; do
         export build=`expr ${build} - 1`
         echo "[Info] Testing build ${build}"
+        url="https://papermc.io/api/v2/projects/paper/versions/${version}/builds/${build}/downloads/paper-${version}-${build}.jar"
         runCommand wget $url
-        getUrl paper
     done
     echo "[Info] Downloaded build ${build}."
     if [ -f paper-*.jar ]; then
@@ -700,6 +713,7 @@ function buildPaper(){
     clean
 }
 
+#32-bit Warning
 function checkBit(){
     runCommand getconf LONG_BIT
     return $?
@@ -716,6 +730,7 @@ function checkBit(){
 
 function updateMain(){
     echo "[Info] Starting auto update at `date`"
+    cd ${serverPath}/Update/
     if [[ $@ =~ "paper" ]]; then
         buildPaper
     fi
@@ -728,8 +743,7 @@ function updateMain(){
         buildMojang
     fi
     if [[ $@ =~ "mtvehicles" ]]; then
-        getUrl mtvehicles
-        checkFile='MTVehicles.jar' chromedriverDownload
+        url='https://www.spigotmc.org/resources/mtvehicles-vehicle-plugin-free-downloadable.80910/download?version=456797' checkFile='MTVehicles.jar' chromedriverDownload
         update MTVehicles.jar
         clean
     fi
@@ -756,8 +770,7 @@ function updateMain(){
 
     if [[ $@ =~ "sac" ]]; then
         echo "[Warn] Warning! Beta support for SoaromaSAC"
-        getUrl sac
-        checkFile=SoaromaSAC.jar chromedriverDownload
+        checkFile=SoaromaSAC.jar url='https://www.spigotmc.org/resources/soaromasac-lightweight-cheat-detection-system.87702/download?version=459815' chromedriverDownload
         update SoaromaSAC.jar
     fi
 
@@ -776,42 +789,43 @@ function updateMain(){
     exitScript 0
 }
 
+#Start Minecraft server
 function startMinecraft(){
     echo '[Info] Deleting lock file'
     lockFile unlock
     echo '[Info] Attempting to start Minecraft server'
-    if [[ $3 =~ 'd' ]]; then
+    if [[ ${flagsInput} =~ 'd' ]]; then
         checkScreen
     fi
     if [ ! -f ${serverPath} *-latest.jar ]; then
         exitScript 7
     fi
-    if [[ $2 =~ 'spigot' ]]; then
+    if [[ ${flagsInput} =~ 'spigot' ]]; then
         if [ -f ${serverPath}/spigot-*.jar ]; then
             runCommand mv ${serverPath}/spigot-*.jar ${serverPath}/Spigot-latest.jar
         fi
         cd ${serverPath}
-        if [[ $3 =~ 'd' ]]; then
+        if [[ ${flagsInput} =~ 'd' ]]; then
             screenName='spigot' screenCommand='java -jar Spigot-latest.jar nogui' createScreen
         else
             java -jar Spigot-latest.jar
         fi
-    elif [[ $2 =~ 'paper' ]]; then
+    elif [[ ${flagsInput} =~ 'paper' ]]; then
         if [ -f ${serverPath}/paper-*.jar ]; then
             mv ${serverPath}/paper-*.jar ${serverPath}/Paper-latest.jar
         fi
         cd ${serverPath}
-        if [[ $3 =~ 'd' ]]; then
+        if [[ ${flagsInput} =~ 'd' ]]; then
             screenName='paper' screenCommand='java -jar Paper-latest.jar nogui' createScreen
         else
             java -jar Paper-latest.jar
         fi
-    elif [[ $2 =~ 'mojang' ]]; then
+    elif [[ ${flagsInput} =~ 'mojang' ]]; then
         if [ -f ${serverPath}/server.jar ]; then
             mv ${serverPath}/server.jar ${serverPath}/Minecraft-latest.jar
         fi
         cd ${serverPath}
-        if [[ $3 =~ 'd' ]]; then
+        if [[ ${flagsInput} =~ 'd' ]]; then
             screenName='minecraft' screenCommand='java -jar Minecraft-latest.jar nogui' createScreen
         else
             java -jar Minecraft-latest.jar
@@ -823,16 +837,6 @@ function startMinecraft(){
         exitScript 15
     fi
     lockFile lock
-}
-
-function runCommand(){
-    if [[ ${_quiet} = 1 ]]; then
-        $@ >/dev/null 2>/dev/null
-    elif [[ ${_verbose} = 1 ]]; then
-        $@
-    else
-        $@ 1>/dev/null
-    fi
 }
 
 function processFlags(){
@@ -883,13 +887,22 @@ function processFlags(){
     fi
 }
 
-
-processFlags $@
+function runCommand(){
+    if [[ ${_quiet} = 1 ]]; then
+        $@ >/dev/null 2>/dev/null
+    elif [[ ${_verbose} = 1 ]]; then
+        $@
+    else
+        $@ 1>/dev/null
+    fi
+}
+######Function End######
+processFlags
 echo "[Info] Hello! `whoami` at `date`"
 printCopyright
 checkBit
 echo "[Info] Reading settings"
-clean
+clean 1>/dev/null 2>/dev/null
 checkConfig
 if [[ $@ =~ 'newserver' ]]; then
     createFolder $@
@@ -924,6 +937,7 @@ if [[ ${flagsInput} =~ 'update' ]]; then
         fi
     fi
 fi
+
 if [[ ${flagsInput} =~ clean ]]; then
     cleanFile buildTools
     cleanFile log
