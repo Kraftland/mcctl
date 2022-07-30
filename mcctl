@@ -4,8 +4,12 @@ function getUrl(){
     unset url
     if [[ $1 = 'eula' ]]; then
         export url=https://account.mojang.com/documents/minecraft_eula
+    elif [[ $1 = 'multilogin' ]]; then
+        export url=https://github.com/CaaMoe/MultiLogin/releases/download/v0.3.15/MultiLogin-Bukkit-0.3.15.jar
     elif [[ $1 = 'mojang-1.19' ]]; then
         export url=https://launcher.mojang.com/v1/objects/e00c4052dac1d59a1188b2aa9d5a87113aaf1122/server.jar
+    elif [[ $1 = 'mojang-1.19.1' ]]; then
+        export url=https://piston-data.mojang.com/v1/objects/8399e1211e95faa421c1507b322dbeae86d604df/server.jar
     elif [[ $1 = 'buildtools' ]]; then
         export url="https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
     elif [[ $1 = 'floodgate' ]]; then
@@ -615,6 +619,8 @@ function integrityProtect(){
             runCommand mv server.jar Minecraft-latest.jar
         elif [ -f SoaromaSAC-*.jar ]; then
             runCommand mv SoaromaSAC-*.jar SoaromaSAC.jar
+        elif [ -f MultiLogin-Bukkit-*.jar ]; then
+            runCommand mv MultiLogin-Bukkit-*.jar MultiLogin.jar
         fi
         unset different
         runCommand diff -q ${checkFile} ${checkFile}.check
@@ -650,6 +656,9 @@ function pluginUpdate(){
     elif [ $@ = Geyser ]; then
         pluginName="$@"
         getUrl geyser
+    elif [ $@ = multilogin ]; then
+        pluginName=$@
+        geturl multilogin
     else
         echo "[Warn] Sorry, but we don't have your plugin's download url. Please wait for support~"
     fi
@@ -754,6 +763,15 @@ function updateMain(){
         clean
     fi
 
+    if [[ ${_multilogin} = 1 ]]; then
+        pluginUpdate multilogon
+        mv MultiLogin-Bukkit-*.jar MultiLogin.jar
+        export checkFile=MultiLogin.jar
+        integrityProtect
+        versionCompare
+        update ${checkFile}
+    fi
+
     if [[ $@ =~ "sac" ]]; then
         echo "[Warn] Warning! Beta support for SoaromaSAC"
         getUrl sac
@@ -842,6 +860,9 @@ function processFlags(){
     if [[ ${flagsInput} =~ 'install' ]]; then
         installScript
         exit 0
+    fi
+    if [[ ${flagsInput} =~ 'multilogin' ]]; then
+        export _multilogin=1
     fi
     if [[ ! $@ ]]; then
         echo '[Info] No options detected! Trying to read saved settings'

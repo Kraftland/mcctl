@@ -85,6 +85,7 @@ mcctl --update --[options]
 | --newserver    | Automatically create server folder.                          |
 | --clean        | Clean leftovers.                                             |
 | mtvehicles     | Update mtvehicles (Unnecessary because you can update plugin by /mtv update) |
+| multilogin     | Update MultiLogin                                            |
 
 ## Load server at startup
 
