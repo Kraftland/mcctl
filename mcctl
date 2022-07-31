@@ -1,11 +1,23 @@
 #!/bin/bash
 
+version_mcctl=dev-22-7-31
+
+function setVersion(){
+    export viaversion_version=4.4.1
+    export viabackwards_version=4.4.1
+    export multilogin_version=0.3.15
+}
+
 function getUrl(){
     unset url
     if [[ $1 = 'eula' ]]; then
         export url=https://account.mojang.com/documents/minecraft_eula
+    elif [[ $1 = 'viaversion' ]]; then
+        export url=https://github.com/ViaVersion/ViaVersion/releases/download/${viaversion_version}/ViaVersion-${viaversion_version}.jar
+    elif [[ $1 = 'viabackwards' ]]; then
+        export url=https://github.com/ViaVersion/ViaBackwards/releases/download/${viabackwards_version}/ViaBackwards-${viabackwards_version}.jar
     elif [[ $1 = 'multilogin' ]]; then
-        export url=https://github.com/CaaMoe/MultiLogin/releases/download/v0.3.15/MultiLogin-Bukkit-0.3.15.jar
+        export url=https://github.com/CaaMoe/MultiLogin/releases/download/v${multilogin_version}/MultiLogin-Bukkit-${multilogin_version}.jar
     elif [[ $1 = 'mojang-1.19' ]]; then
         export url=https://launcher.mojang.com/v1/objects/e00c4052dac1d59a1188b2aa9d5a87113aaf1122/server.jar
     elif [[ $1 = 'mojang-1.19.1' ]]; then
@@ -287,7 +299,7 @@ function checkServiceFileInstalled(){
     fi
 }
 
-function installScript(){
+function installScript-dev(){
     echo '[Info] Downloading script'
     runCommand rm -rf mcctl
     runCommand git clone https://github.com/Kimiblock/mcctl.git
@@ -314,6 +326,7 @@ function installScript(){
 function uninstallScript(){
     echo '[Info] Uninstalling mcctl from your system'
     runCommand sudo rm -rf /usr/bin/mcctl
+    runCommand sudo rm -rf /opt/mcctl
     echo '[Info] Uninstalled mcctl from your system'
 }
 
@@ -621,6 +634,10 @@ function integrityProtect(){
             runCommand mv SoaromaSAC-*.jar SoaromaSAC.jar
         elif [ -f MultiLogin-Bukkit-*.jar ]; then
             runCommand mv MultiLogin-Bukkit-*.jar MultiLogin.jar
+        elif [ -f ViaBackwards*.jar ]; then
+            runCommand mv ViaBackwards*.jar ViaBackwards.jar
+        elif [ -f ViaVersion*.jar ]; then
+            runCommand mv ViaVersion*.jar ViaVersion.jar
         fi
         unset different
         runCommand diff -q ${checkFile} ${checkFile}.check
@@ -724,7 +741,11 @@ function checkBit(){
 }
 
 function updateMain(){
+    setVersion
     echo "[Info] Starting auto update at `date`"
+    if [[ ! $@ ]]; then
+        updateScript
+    fi
     if [[ $@ =~ "paper" ]]; then
         buildPaper
     fi
@@ -779,6 +800,23 @@ function updateMain(){
         update SoaromaSAC.jar
     fi
 
+    if [[ ${flagsInput} =~ 'viabackwards' ]]; then
+        getUrl viabackwards
+        runCommand ViaBackwards*.jar ViaBackwards.jar
+        checkFile=ViaBackwards.jar
+        integrityProtect
+        versionCompare
+        update ${checkFile}
+    fi
+
+    if [[ ${flagsInput} =~ 'viabackwards' ]]; then
+        getUrl viaversion
+        runCommand ViaVersion*.jar ViaVersion.jar
+        checkFile=ViaVersion.jar
+        integrityProtect
+        versionCompare
+        update ${checkFile}
+    fi
 
     if [[ $@ =~ 'clean' ]]; then
         cleanFile -buildTools
@@ -881,6 +919,9 @@ function processFlags(){
     elif [[ ${flagsInput} =~ '--quiet' ]]; then
         echo '[Info] Quiet mode is on'
         export _quiet=1
+    else
+        export _quiet=1
+        export _verbose=0
     fi
     if [[ ${flagsInput} =~ 'force-unlock' ]]; then
         lockFile unlock
@@ -904,7 +945,76 @@ function processFlags(){
     fi
 }
 
+function unsetAll(){
+    for flagsToUnset in viaversion_version viabackwards_version multilogin_version version build url screenCommand screenName flagsInput version serverPath checkFile packageManager SHELL env updateFlags paperInstalled spigotInstalled mojangInstalled service checkConfirm screenId trash logFiles sign checkConfig different pluginName checkFile _quiet _verbose; do
+        unset ${flagsToUnset}
+    done
+    unset flagsToUnset
+}
 
+function rescueMode(){
+    echo '[Warn] You are in rescue mode'
+    echo '[Warn] Script will try to fix it self'
+    echo '[Warn] Cleaning logs and left overs'
+    cleanFile buildtools
+    cleanFile log
+    clean
+    echo '[Warn] Cleaning flags'
+    unsetAll
+    echo '[Warn] Reinstalling from Internet'
+    mcctl --install
+}
+
+function installScript(){
+    echo '[Info] Getting the letest stable version'
+    runCommand rm -rf mcctl
+    runCommand git clone https://github.com/Kimiblock/mcctl.git
+    if [[ $? = 1 ]]; then
+        echo '[Info] Downloaded version info'
+    else
+        exitScript 11
+    fi
+    pathPrevious=`pwd`
+    cd mcctl
+    runCommand git pull
+    target_mcctl_version=`git describe --tags --abbrev=0`
+    runCommand curl -O "https://github.com/Kimiblock/mcctl/releases/download/${target_mcctl_version}/mcctl"
+    echo '[Info] Installing resources, asking sudo premission'
+    runCommand sudo mkdir -p /opt/mcctl
+    runCommand sudo mv resources /opt/mcctl/
+    runCommand sudo mv mcctl /usr/bin/
+    runCommand sudo chmod +x /usr/bin/mcctl
+    cd ${pathPrevious}
+    rm -rf mcctl
+    echo '[Info] Script installed and updated'
+}
+
+function updateScript(){
+    runCommand rm -rf mcctl
+    runCommand git clone https://github.com/Kimiblock/mcctl.git
+    if [[ $? = 1 ]]; then
+        echo '[Info] Downloaded version info'
+    else
+        exitScript 11
+    fi
+    pathPrevious=`pwd`
+    cd mcctl
+    runCommand git pull
+    target_mcctl_version=`git describe --tags --abbrev=0`
+    cd ${pathPrevious}
+    runCommand rm -rf mcctl
+    if [[ ${version_mcctl} = ${target_mcctl_version} ]]; then
+        echo '[Info] mcctl installed and up-to-date'
+    else
+        echo "[Info] Version mismatch discoverd, your version is ${version_mcctl} but target version is ${target_mcctl_version}"
+        installScript
+    fi
+}
+
+#Below are main process
+echo "Loading mcctl version ${version_mcctl}"
+sleep 2s
+LC_ALL=C
 processFlags $@
 echo "[Info] Hello! `whoami` at `date`"
 printCopyright
@@ -912,6 +1022,9 @@ checkBit
 echo "[Info] Reading settings"
 clean
 checkConfig
+if [[ ${flagsInput} =~ 'update-self' ]]; then
+    updateScript
+fi
 if [[ $@ =~ 'newserver' ]]; then
     createFolder $@
     acceptEula
