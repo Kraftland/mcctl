@@ -1,7 +1,7 @@
 #!/bin/bash
 
-version_mcctl=dev-22-7-31
-snapshotPath=~/mcctl-snapshots
+version_mcctl=dev-22-8-2
+
 
 function setVersion(){
     export viaversion_version=4.4.1
@@ -67,7 +67,7 @@ function removeSnapshots(){
         return 0
     elif [[ $1 = 1 ]]; then
         echo "[Info] Attempting to delete snapshots older then $1 day"
-    elif [ $1 -gt 1 ]
+    elif [ $1 -gt 1 ]; then
         echo "[Info] Attempting to delete snapshots older then $1 days"
     fi
     unset confirm
@@ -80,7 +80,7 @@ function removeSnapshots(){
         dateStart=`date -d "${dateLimit} days ago" +%Y%m%d`
         dateToProcess=${dateStart}
         dateGap=`expr ${dateNow} - ${dateToProcess}`
-        while [ ${dateGap} -gt 0 ]; then
+        while [ ${dateGap} -gt 0 ]; do
             runCommand rm ${snapshotPath}/${dateToProcess}.tar.xz
             dateGap=`expr ${dateGap} - 1`
         done
@@ -988,9 +988,15 @@ function processFlags(){
     unset _quiet
     unset _verbose
     flagsInput=$@
+    if [ ! ${snapshotPath} ]; then
+        snapshotPath=~/mcctl-snapshot
+    fi
     if [[ ${flagsInput} =~ 'install' ]]; then
         installScript
         exit 0
+    fi
+    if [[ ${flagsInput} =~ '--create-snapshot' ]]; then
+        makeSnapshot
     fi
     if [[ ${flagsInput} =~ 'multilogin' ]]; then
         export _multilogin=1
@@ -1112,6 +1118,12 @@ processFlags $@
 echo "[Info] Hello! `whoami` at `date`"
 printCopyright
 checkBit
+if [[ $1 = '--restore-snapshot' ]]; then
+    restoreSnapshot $2
+fi
+if [[ $1 = '--delete-snapshot' ]]; then
+    removeSnapshots $2
+fi
 echo "[Info] Reading settings"
 clean
 checkConfig
