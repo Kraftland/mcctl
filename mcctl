@@ -1,6 +1,7 @@
 #!/bin/bash
 
 version_mcctl=dev-22-7-31
+snapshotPath=~/mcctl-snapshots
 
 function setVersion(){
     export viaversion_version=4.4.1
@@ -39,13 +40,103 @@ function getUrl(){
     fi
 }
 
+#Make snapshots
+function makeSnapshot(){
+    echo '[Info] Preparing snapshots'
+    snapshotYesterday=`expr `date "+%Y%m%d"` - 1`
+    snapshotToSave=`date "+%Y%m%d"`
+    if [ ! -d ${snapshotPath} ]; then
+        echo '[Info] Preparing directory'
+        runCommand mkdir -p ${snapshotPath}
+    fi
+    echo '[Info] Making the newest snapshot'
+    runCommand cp -r ${serverPath}/* ${snapshotPath}/${snapshotToSave}
+    runCommand tar -cJf ${snapshotPath}/${snapshotToSave}.tar.xz ${snapshotPath}/${snapshotToSave}/*
+    runCommand rm ${snapshotPath}/${snapshotToSave}
+    echo "[Info] Snapshot maked, saved to ${snapshotToSave}.tar.xz"
+    return 0
+}
+
+#Remove older snapshots, snapshots older than $1 days will be removed
+function removeSnapshots(){
+    if [ $1 -lt 0 ]; then
+        echo '[Critical] Trying to break this script by a sub-zero number?'
+        exitScript 16
+    elif [ $1 -lt 1 ]; then
+        echo "[Warn] Nothing to do~"
+        return 0
+    elif [[ $1 = 1 ]]; then
+        echo "[Info] Attempting to delete snapshots older then $1 day"
+    elif [ $1 -gt 1 ]
+        echo "[Info] Attempting to delete snapshots older then $1 days"
+    fi
+    unset confirm
+    read -p '[Warn] Please confirm your operation by [Y]:' confirm
+    if [[ ${confirm} = 'Y' ]]; then
+        echo '[Info] Removing snapshots'
+        unset dateGap
+        dateLimit=$1
+        dateNow=`date "+%Y%m%d"`
+        dateStart=`date -d "${dateLimit} days ago" +%Y%m%d`
+        dateToProcess=${dateStart}
+        dateGap=`expr ${dateNow} - ${dateToProcess}`
+        while [ ${dateGap} -gt 0 ]; then
+            runCommand rm ${snapshotPath}/${dateToProcess}.tar.xz
+            dateGap=`expr ${dateGap} - 1`
+        done
+    else
+        echo "[Warn] Operation cancelled by ${confirm}"
+    fi
+    unset confirm
+}
+
+#Restore snapshots taken $1 days ago
+function restoreSnapshot(){
+    if [ $1 -lt 0 ]; then
+        echo '[Critical] Trying to break this script by a sub-zero number?'
+        exitScript 16
+    elif [ $1 -lt 1 ]; then
+        echo '[Warn] Nothing to do~'
+        return 2
+    elif [ $1 = 1 ]; then
+        echo "[Warn] Attempting to restore snapshots $1 day ago"
+    elif [ $1 -gt 1 ]; then
+        echo "[Warn] Attempting to restore snapshots $1 days ago"
+    fi
+    dateToRestore=`date -d "$1 days ago" +%Y%m%d`
+    snapshotToProcess=${dateToRestore}.tar.xz
+    cachePath=~/mcctl-snapshot-restore-$RANDOM
+    unset confirm
+    read -p "[Warn] Are you sure to restore snapshot: ${dateToRestore}? Confirm by [Y]" confirm
+    if [ ${confirm} = 'Y' ]; then
+        if [ `ps aux | grep 'java -jar'` ]; then
+            echo '[Warn] Detected a java -jar process, is your Minecraft server running?'
+        fi
+        echo '[Info] Prepairing cache directory'
+        mkdir -p ${cachePath}
+        pathPrevious=`pwd`
+        cd ${cachePath}
+        cp ${snapshotPath}/${snapshotToProcess} ${cachePath}
+        tar -xf ${snapshotToProcess}
+        rm ${snapshotToProcess}
+        echo '[Info] Restoring snapshots'
+        mv * ${serverPath}/
+        echo '[Info] Deleting leftovers'
+        cd ${pathPrevious}
+        rm -rf ${cachePath}
+    else
+        echo '[Warn] Operation cancelled'
+    fi
+    unset confirm
+}
+
 function openEula(){
     getUrl eula
     echo '[Info] Starting xdg-open'
     runCommand xdg-open --version
     if [[ $? = 0 ]]; then
         echo "[Info] Opening eula page or manually visit ${url}"
-        screenName=eulaTemp screenCommand="xdg-open ${url}" createScreen
+        screenName=eulaBrowse screenCommand="xdg-open ${url}" createScreen
     else
         echo "[Warn] Please read the eula from mojang, please read eula from Mojang(${url})"
     fi
@@ -464,6 +555,8 @@ function exitScript(){
             sign="mcctl lock file found, make sure you doesn't run another mcctl process"
         elif [[ $@ = 15 ]]; then
             sign="Exit code from minecraft detected"
+        elif [[ $@ = 16 ]]; then
+            sign='Wrong argument detected'
         elif [[ ! $@ ]]; then
             sign='Internal error'
         else
