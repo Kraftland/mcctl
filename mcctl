@@ -51,7 +51,10 @@ function makeSnapshot(){
     echo '[Info] Copying files'
     cp -r ${serverPath}/* ${snapshotPath}/${snapshotToSave}
     echo '[Info] Compressing files, this may take some time'
-    runCommand tar -cJf ${snapshotPath}/${snapshotToSave}.tar.xz ${snapshotPath}/${snapshotToSave}/*
+    pathPrevious=`pwd`
+    cd ${snapshotPath}/${snapshotToSave}/
+    runCommand tar -cJf ${snapshotPath}/${snapshotToSave}.tar.xz *
+    cd ${pathPrevious}
     rm -rf ${snapshotPath}/${snapshotToSave}
     echo "[Info] Snapshot saved to ${snapshotToSave}.tar.xz, exitting"
     return 0
