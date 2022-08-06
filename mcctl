@@ -40,6 +40,24 @@ function getUrl(){
     fi
 }
 
+#Define the latest git tag by git describe, $1 refer to the link to clone, $2 refer to repo name. Output $tagLatest
+function defineLatestTag(){
+    unset tagLatest
+    echo "[Info] Preparing directory"
+    pathPrevious=`pwd`
+    cd ~
+    runCommand mkdir -p .mcctl-cache
+    cd .mcctl-cache
+    runCommand git clone $1
+    cd $2
+    echo "[Info] Fetching the latest update of $1"
+    runCommand git pull
+    tagLatest=`git describe --tags --abbrev=0`
+    cd ${pathPrevious}
+    runCommand rm -rf ~/.mcctl-cache
+}
+
+
 #Make snapshots
 function makeSnapshot(){
     echo '[Info] Preparing to make snapshots'
