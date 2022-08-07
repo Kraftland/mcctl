@@ -87,6 +87,36 @@ mcctl --update --[options]
 | mtvehicles     | Update mtvehicles (Unnecessary because you can update plugin by /mtv update) |
 | multilogin     | Update MultiLogin                                            |
 
+## Snapshots (Expermental)
+
+### Create a snapshot
+
+```bash
+mcctl --create-snapshot
+```
+
+You can also specify where to store your snapshots by $snapshotPath
+
+### Remove old snapshots
+
+Remove snapshots older than $2 day(s)
+
+```bash
+mcctl --remove-snapshot $2
+```
+
+### Restore a snapshot
+
+<u>***Warning! Turn off your Minecraft server or you might break your system.***</u>
+
+Restore snapshot $2 day(s) ago:
+
+```
+mcctl --restore-snapshot $2
+```
+
+
+
 ## Load server at startup
 
 ```bash
