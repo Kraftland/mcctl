@@ -1,12 +1,19 @@
 #!/bin/bash
 
-version_mcctl=dev-22-8-7
+version_mcctl=dev-22-8-9
 
 
 function setVersion(){
-    export viaversion_version=4.4.1
-    export viabackwards_version=4.4.1
-    export multilogin_version=0.3.15
+    if [[ $1 = "multilogin" ]]; then
+        defineLatestTag https://github.com/CaaMoe/MultiLogin.git MultiLogin
+        multilogin_version=${tagLatest}
+    elif [[ $1 = 'viaversion' ]]; then
+        defineLatestTag https://github.com/ViaVersion/ViaVersion.git ViaVersion
+        viaversion_version=${tagLatest}
+    elif [[ $1 = 'viabackwards' ]]; then
+        defineLatestTag https://github.com/ViaVersion/ViaBackwards.git ViaBackwards
+        viabackwards_version=${tagLatest}
+    fi
 }
 
 function getUrl(){
@@ -792,6 +799,7 @@ function pluginUpdate(){
         pluginName="$@"
         getUrl geyser
     elif [ $@ = multilogin ]; then
+        setVersion multilogin
         pluginName=$@
         geturl multilogin
     else
@@ -919,6 +927,7 @@ function updateMain(){
     fi
 
     if [[ ${flagsInput} =~ 'viabackwards' ]]; then
+        setVersion viabackwards
         getUrl viabackwards
         runCommand ViaBackwards*.jar ViaBackwards.jar
         checkFile=ViaBackwards.jar
@@ -927,7 +936,8 @@ function updateMain(){
         update ${checkFile}
     fi
 
-    if [[ ${flagsInput} =~ 'viabackwards' ]]; then
+    if [[ ${flagsInput} =~ 'viaversion' ]]; then
+        setVersion viabackwards
         getUrl viaversion
         runCommand ViaVersion*.jar ViaVersion.jar
         checkFile=ViaVersion.jar
