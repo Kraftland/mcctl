@@ -558,6 +558,7 @@ function exitScript(){
         echo '[Critical] You may follow the instructions to debug'
         if [[ $@ = 1 ]]; then
             sign='Unknown error'
+            rescueMode
         elif [[ $@ = 2 ]]; then
             sign='Can not create directory'
         elif [[ $@ = 3 ]]; then
@@ -590,14 +591,14 @@ function exitScript(){
             sign='Wrong argument detected'
         elif [[ ! $@ ]]; then
             sign='Internal error'
+            rescueMode
         else
             sign="Undefined error code"
         fi
         echo "[Critical] ${sign}"
         echo '[Critical] Exitting...'
         unset ${sign}
-        #exit $@
-        rescueMode
+        exit $@
     fi
 }
 
