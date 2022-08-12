@@ -1101,7 +1101,7 @@ function installScript(){
     echo '[Info] Getting the letest stable version'
     runCommand rm -rf mcctl
     runCommand git clone https://github.com/Kimiblock/mcctl.git
-    if [[ $? = 1 ]]; then
+    if [[ $? = 0 ]]; then
         echo '[Info] Downloaded version info'
     else
         exitScript 11
