@@ -1,19 +1,31 @@
 #!/bin/bash
 
-version_mcctl=dev-22-8-9
+version_mcctl=dev-22-8-14
 
 
 function setVersion(){
     if [[ $1 = "multilogin" ]]; then
         defineLatestTag https://github.com/CaaMoe/MultiLogin.git MultiLogin
-        multilogin_version=${tagLatest}
+        #multilogin_version=${tagLatest}
     elif [[ $1 = 'viaversion' ]]; then
         defineLatestTag https://github.com/ViaVersion/ViaVersion.git ViaVersion
-        viaversion_version=${tagLatest}
+        #viaversion_version=${tagLatest}
     elif [[ $1 = 'viabackwards' ]]; then
         defineLatestTag https://github.com/ViaVersion/ViaBackwards.git ViaBackwards
-        viabackwards_version=${tagLatest}
+        #viabackwards_version=${tagLatest}
+    elif [[ $1 = 'protocollib' ]]; then
+        defineLatestTag https://github.com/dmulloy2/ProtocolLib.git ProtocolLib
+        #protocollib_version=${tagLatest}
+    elif [[ $1 = 'vault' ]]; then
+        defineLatestTag https://github.com/MilkBowl/Vault.git Vault
+        #vault_version=${tagLatest}
+    elif [[ $1 = 'craftgui' ]]; then
+        defineLatestTag https://github.com/Fireflyest/CraftGUI.git CraftGUI
+        #craftgui_version=${tagLatest}
+    elif [[ $1 = 'globalmarket' ]]; then
+        defineLatestTag https://github.com/Fireflyest/GlobalMarket.git GlobalMarket
     fi
+    export "$1_version"=${tagLatest}
 }
 
 function getUrl(){
@@ -698,7 +710,7 @@ function detectPackageManager(){
     fi
 }
 
-checkConfig(){
+function checkConfig(){
     checkBash
     if [ ! ${version} ]; then
         exitScript 4
@@ -1039,12 +1051,12 @@ function processFlags(){
         unset flagsInput
         readConf flags
     fi
-    if [ ! ${serverPath} ]; then
-        readConf env
-    fi
-    if [ ! ${version} ]; then
-        readConf env
-    fi
+#    if [ ! ${serverPath} ]; then
+#        readConf env
+#    fi
+#    if [ ! ${version} ]; then
+#        readConf env
+#    fi
     if [[ ${flagsInput} =~ '--verbose' ]]; then
         echo '[Info] Verbose mode is on'
         export _verbose=1
@@ -1060,17 +1072,17 @@ function processFlags(){
     fi
     lockFile check
     #lockFile lock
-    if [[ ${flagsInput} =~ 'save-conf' ]]; then
-        saveConfig
-    fi
-    if [[ $@ =~ 'create-conf' ]]; then
-        createConf
-    fi
+#    if [[ ${flagsInput} =~ 'save-conf' ]]; then
+#        saveConfig
+#    fi
+#    if [[ $@ =~ 'create-conf' ]]; then
+#        createConf
+#    fi
     if [[ $@ = 'currentdirectory' ]]; then
         serverPath=`pwd`
     fi
     if [[ $@ =~ 'latest' ]]; then
-        version=1.19.1
+        version=1.19.2
     fi
     if [[ ${flagsInput} =~ 'start' ]]; then
         startMinecraft ${flagsInput}
@@ -1145,7 +1157,7 @@ function updateScript(){
 
 #Below are main process
 echo "Loading mcctl version ${version_mcctl}"
-sleep 2s
+#sleep 2s
 LC_ALL=C
 processFlags $@
 echo "[Info] Hello! `whoami` at `date`"
