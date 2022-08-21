@@ -1046,11 +1046,11 @@ function processFlags(){
     if [[ ${flagsInput} =~ 'multilogin' ]]; then
         export _multilogin=1
     fi
-    if [[ ! $@ ]]; then
-        echo '[Info] No options detected! Trying to read saved settings'
-        unset flagsInput
-        readConf flags
-    fi
+#     if [[ ! $@ ]]; then
+#         echo '[Info] No options detected! Trying to read saved settings'
+#         unset flagsInput
+#         readConf flags
+#     fi
 #    if [ ! ${serverPath} ]; then
 #        readConf env
 #    fi
