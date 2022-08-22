@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version_mcctl=dev-22-8-21
+version_mcctl=dev-22-8-22
 
 
 function setVersion(){
@@ -59,6 +59,21 @@ function getUrl(){
     fi
 }
 
+#Provides a global confirm function, return 0 as confirmed
+function askConfirm(){
+    unset _askConfirm
+    read -p 'Confirm your operation: [y/n]' _askConfirm
+    if [ ${_askConfirm} = y ]; then
+        unset _askConfirm
+        echo '[Info] Operation confirmed'
+        return 0
+    else
+        echo '[Warn] Operation cancelled'
+        unset _askConfirm
+        return 1
+    fi
+}
+
 #Define the latest git tag by git describe, $1 refer to the link to clone, $2 refer to repo name. Output $tagLatest
 function defineLatestTag(){
     unset tagLatest
@@ -114,8 +129,9 @@ function removeSnapshots(){
         echo "[Info] Attempting to delete snapshots older then $1 days"
     fi
     unset confirm
-    read -p '[Warn] Please confirm your operation by [Y]:' confirm
-    if [[ ${confirm} = 'Y' ]]; then
+    #read -p '[Warn] Please confirm your operation by [Y]:' confirm
+    askConfirm
+    if [[ $? = 0 ]]; then
         echo '[Info] Removing snapshots'
         unset dateGap
         dateLimit=$1
@@ -127,8 +143,8 @@ function removeSnapshots(){
             runCommand rm ${snapshotPath}/${dateToProcess}.tar.xz
             dateGap=`expr ${dateGap} - 1`
         done
-    else
-        echo "[Warn] Operation cancelled by ${confirm}"
+#     else
+#         echo "[Warn] Operation cancelled by ${confirm}"
     fi
     unset confirm
 }
@@ -150,8 +166,9 @@ function restoreSnapshot(){
     snapshotToProcess=${dateToRestore}.tar.xz
     cachePath=~/mcctl-snapshot-restore-$RANDOM
     unset confirm
-    read -p "[Warn] Are you sure to restore snapshot: ${dateToRestore}? Confirm by [Y]" confirm
-    if [ ${confirm} = 'Y' ]; then
+#     read -p "[Warn] Are you sure to restore snapshot: ${dateToRestore}? Confirm by [Y]" confirm
+    askConfirm
+    if [[ $? = 0 ]]; then
         if [ `ps aux | grep 'java -jar'` ]; then
             echo '[Warn] Detected a java -jar process, is your Minecraft server running?'
         fi
@@ -167,8 +184,8 @@ function restoreSnapshot(){
         echo '[Info] Deleting leftovers'
         cd ${pathPrevious}
         rm -rf ${cachePath}
-    else
-        echo '[Warn] Operation cancelled'
+#     else
+#         echo '[Warn] Operation cancelled'
     fi
     unset confirm
 }
@@ -178,7 +195,7 @@ function openEula(){
     echo '[Info] Starting xdg-open'
     runCommand xdg-open --version
     if [[ $? = 0 ]]; then
-        echo "[Info] Opening eula page or manually visit ${url}"
+        echo "[Info] Opening eula web page"
         screenName=eulaBrowse screenCommand="xdg-open ${url}" createScreen
     else
         echo "[Warn] Please read the eula from mojang, please read eula from Mojang(${url})"
@@ -192,13 +209,17 @@ function acceptEula(){
         echo 'eula=true' >${serverPath}/eula.txt
     else
         openEula
-        unset confirm
-        read -p "[Warn] Enter 'Y' to proceed or any other key to cancel:" confirm
-        if [[ ${confirm} = "Y" ]]; then
-            echo '[Info] Accepting eula'
+        askConfirm
+#         unset confirm
+#         read -p "[Warn] Enter 'Y' to proceed or any other key to cancel:" confirm
+#         if [[ ${confirm} = "Y" ]]; then
+#             echo '[Info] Accepting eula'
+#             echo 'eula=true' >${serverPath}/eula.txt
+#         else
+#             echo "[Info] Detected cancel key"
+#         fi
+        if [[ $? = 0 ]]; then
             echo 'eula=true' >${serverPath}/eula.txt
-        else
-            echo "[Info] Detected cancel key"
         fi
     fi
 }
@@ -508,7 +529,7 @@ function installRequirements(){
     echo '[Info] Installing requirements'
     detectPackageManager
     if [ ${packageManager} = 'pacman' ]; then
-        runCommand sudo pacman -S jre-openjdk-headless jdk8-openjdk git screen wget --noconfirm --needed
+        runCommand sudo pacman -S jre-openjdk git screen wget xdg-utils chromium --noconfirm --needed
     elif [ ${packageManager} = 'apt' ]; then
         runCommand sudo apt install -y default-jdk screen wget openjdk-8-jre-headless
     elif [ ${packageManager} = 'dnf' ]; then
@@ -521,11 +542,16 @@ function installRequirements(){
 function checkScreen(){
     echo '[Info]Checking if you have already installed screen'
     runCommand screen --version
-    if [[ $? =~ 127 ]]; then
+    if [[ $? = 127 ]]; then
         exitScript 8
+    elif [[ $? = 0  ]]; then
+        echo "[Info] Screen installed and functioned correctly"
+    else
+        echo "[Warn] Screen returned an error code $?"
     fi
 }
 
+#$screenName, $screenCommand needed
 function createScreen(){
     echo "[Info] Creating new screen ${screenName}.${screenId}"
     screen -dmS ${screenName}
@@ -553,14 +579,16 @@ function cleanFile(){
     if [[ $@ =~ unattended ]]; then
         echo '[Info] Skipping config file in ~/.config'
     else
-        unset confirm
-        read -p '[Warn] Do you want to completely delete mcctl configs?[y/n]: ' confirm
-        if [ ${confirm} = y ]; then
+#         unset confirm
+#         read -p '[Warn] Do you want to completely delete mcctl configs?[y/n]: ' confirm
+        askConfirm
+        if [ $? = 0 ]; then
             runCommand rm -rf ~/.config/mcctl
         fi
     fi
 }
 
+#Detect error codes and provide a debug instruction
 function exitScript(){
     if [ $@ = 0 ]; then
     exit $@
