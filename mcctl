@@ -1,7 +1,6 @@
 #!/bin/bash
 
-version_mcctl=dev-22-8-22
-
+version_mcctl=dev-22-8-31
 
 function setVersion(){
     if [[ $1 = "multilogin" ]]; then
@@ -24,9 +23,12 @@ function setVersion(){
         #craftgui_version=${tagLatest}
     elif [[ $1 = 'globalmarket' ]]; then
         defineLatestTag https://github.com/Fireflyest/GlobalMarket.git GlobalMarket
+    elif [[ $1 = 'griefprevention' ]]; then
+        defineLatestTag https://github.com/TechFortress/GriefPrevention.git GriefPrevention
+    elif [[ $1 = 'noencryption' ]]; then
+        defineLatestTag https://github.com/Doclic/NoEncryption.git NoEncryption
     fi
     export "$1_version"=${tagLatest}
-}
 
 function getUrl(){
     unset url
@@ -54,6 +56,21 @@ function getUrl(){
         export url='https://www.spigotmc.org/resources/mtvehicles-vehicle-plugin-free-downloadable.80910/download?version=456797'
     elif [[ $1 = 'sac' ]]; then
         export url='https://www.spigotmc.org/resources/soaromasac-lightweight-cheat-detection-system.87702/download?version=459815'
+    elif [[ $1 = 'protocollib' ]]; then
+        export url=https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/artifact/target/ProtocolLib.jar
+    elif [[ $1 = 'vault' ]]; then
+        #setVersion vault
+        export url="https://github.com/MilkBowl/Vault/releases/latest/download/Vault.jar"
+        #export url="https://github.com/MilkBowl/Vault/releases/download/${vault_version}/Vault.jar"
+    elif [[ $1 = 'craftgui' ]]; then
+        setVersion craftgui
+        export url="https://github.com/Fireflyest/CraftGUI/releases/download/${craftgui_version}/CraftGUI-`echo ${craftgui_version} | cut -c 2-`.jar"
+    elif [[ $1 = 'globalmarket' ]]; then
+        setVersion globalmarket
+        export url="https://github.com/Fireflyest/GlobalMarket/releases/download/${craftgui_version}/CraftGUI-`echo ${craftgui_version} | cut -c 2-`.jar"
+    elif [[ $1 = 'griefprevention' ]]
+        #setVersion griefprevention
+        export url="https://github.com/TechFortress/GriefPrevention/releases/latest/download/GriefPrevention.jar"
     else
         echo '[Critical] Url not found!'
     fi
@@ -970,7 +987,7 @@ function updateMain(){
     if [[ ${flagsInput} =~ 'viabackwards' ]]; then
         setVersion viabackwards
         getUrl viabackwards
-        runCommand ViaBackwards*.jar ViaBackwards.jar
+        runCommand mv ViaBackwards*.jar ViaBackwards.jar
         checkFile=ViaBackwards.jar
         integrityProtect
         versionCompare
@@ -980,8 +997,16 @@ function updateMain(){
     if [[ ${flagsInput} =~ 'viaversion' ]]; then
         setVersion viabackwards
         getUrl viaversion
-        runCommand ViaVersion*.jar ViaVersion.jar
+        runCommand mv ViaVersion*.jar ViaVersion.jar
         checkFile=ViaVersion.jar
+        integrityProtect
+        versionCompare
+        update ${checkFile}
+    fi
+
+    if [[ ${flagsInput} =~ 'protocollib' ]]; then
+        getUrl protocollib
+        checkFile=ProtocolLib.jar
         integrityProtect
         versionCompare
         update ${checkFile}
@@ -1138,25 +1163,26 @@ function rescueMode(){
 }
 
 function installScript(){
-    echo '[Info] Getting the letest stable version'
-    runCommand rm -rf mcctl
-    runCommand git clone https://github.com/Kimiblock/mcctl.git
-    if [[ $? = 0 ]]; then
-        echo '[Info] Downloaded version info'
-    else
-        exitScript 11
-    fi
-    pathPrevious=`pwd`
-    cd mcctl
-    runCommand git pull
-    target_mcctl_version=`git describe --tags --abbrev=0`
-    runCommand curl -O "https://github.com/Kimiblock/mcctl/releases/download/${target_mcctl_version}/mcctl"
+     echo '[Info] Getting the letest stable version'
+     runCommand rm -rf mcctl
+#     runCommand git clone https://github.com/Kimiblock/mcctl.git
+#     if [[ $? = 0 ]]; then
+#         echo '[Info] Downloaded version info'
+#     else
+#         exitScript 11
+#     fi
+#     pathPrevious=`pwd`
+#     cd mcctl
+#     runCommand git pull
+#     target_mcctl_version=`git describe --tags --abbrev=0`
+    runCommand wget https://github.com/Kimiblock/mcctl/releases/latest/download/mcctl
+#     runCommand curl -O "https://github.com/Kimiblock/mcctl/releases/download/${target_mcctl_version}/mcctl"
     echo '[Info] Installing resources, asking sudo premission'
-    runCommand sudo mkdir -p /opt/mcctl
-    runCommand sudo mv resources /opt/mcctl/
+#     runCommand sudo mkdir -p /opt/mcctl
+#     runCommand sudo mv resources /opt/mcctl/
     runCommand sudo mv mcctl /usr/bin/
     runCommand sudo chmod +x /usr/bin/mcctl
-    cd ${pathPrevious}
+#     cd ${pathPrevious}
     rm -rf mcctl
     echo '[Info] Script installed and updated'
 }
