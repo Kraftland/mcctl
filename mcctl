@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version_mcctl=dev-22-8-31
+version_mcctl=dev-22-9-3
 
 function setVersion(){
     if [[ $1 = "multilogin" ]]; then
@@ -29,6 +29,7 @@ function setVersion(){
         defineLatestTag https://github.com/Doclic/NoEncryption.git NoEncryption
     fi
     export "$1_version"=${tagLatest}
+}
 
 function getUrl(){
     unset url
@@ -68,8 +69,7 @@ function getUrl(){
     elif [[ $1 = 'globalmarket' ]]; then
         setVersion globalmarket
         export url="https://github.com/Fireflyest/GlobalMarket/releases/download/${craftgui_version}/CraftGUI-`echo ${craftgui_version} | cut -c 2-`.jar"
-    elif [[ $1 = 'griefprevention' ]]
-        #setVersion griefprevention
+    elif [[ $1 = 'griefprevention' ]]; then
         export url="https://github.com/TechFortress/GriefPrevention/releases/latest/download/GriefPrevention.jar"
     else
         echo '[Critical] Url not found!'
@@ -108,6 +108,28 @@ function defineLatestTag(){
     runCommand rm -rf ~/.mcctl-cache
 }
 
+#Elevate permissions via polkit or sudo
+function elevatePermission(){
+    if [[ `whoami` = root ]]; then
+        $@
+    else
+        checkDesktop
+        if [[ $? = 0 ]]; then
+            pkexec $@
+        else
+            sudo $@
+        fi
+    fi
+}
+
+#Check if any graphical sessions enabled, return 0 when desktop environment detected
+function checkDesktop(){
+    if [ -f /usr/share/xsessions/*.desktop ]; then
+        return 0
+    else
+        return 1
+    fi
+}
 
 #Make snapshots
 function makeSnapshot(){
@@ -146,7 +168,6 @@ function removeSnapshots(){
         echo "[Info] Attempting to delete snapshots older then $1 days"
     fi
     unset confirm
-    #read -p '[Warn] Please confirm your operation by [Y]:' confirm
     askConfirm
     if [[ $? = 0 ]]; then
         echo '[Info] Removing snapshots'
@@ -160,8 +181,6 @@ function removeSnapshots(){
             runCommand rm ${snapshotPath}/${dateToProcess}.tar.xz
             dateGap=`expr ${dateGap} - 1`
         done
-#     else
-#         echo "[Warn] Operation cancelled by ${confirm}"
     fi
     unset confirm
 }
@@ -183,7 +202,6 @@ function restoreSnapshot(){
     snapshotToProcess=${dateToRestore}.tar.xz
     cachePath=~/mcctl-snapshot-restore-$RANDOM
     unset confirm
-#     read -p "[Warn] Are you sure to restore snapshot: ${dateToRestore}? Confirm by [Y]" confirm
     askConfirm
     if [[ $? = 0 ]]; then
         if [ `ps aux | grep 'java -jar'` ]; then
@@ -201,8 +219,6 @@ function restoreSnapshot(){
         echo '[Info] Deleting leftovers'
         cd ${pathPrevious}
         rm -rf ${cachePath}
-#     else
-#         echo '[Warn] Operation cancelled'
     fi
     unset confirm
 }
@@ -227,14 +243,6 @@ function acceptEula(){
     else
         openEula
         askConfirm
-#         unset confirm
-#         read -p "[Warn] Enter 'Y' to proceed or any other key to cancel:" confirm
-#         if [[ ${confirm} = "Y" ]]; then
-#             echo '[Info] Accepting eula'
-#             echo 'eula=true' >${serverPath}/eula.txt
-#         else
-#             echo "[Info] Detected cancel key"
-#         fi
         if [[ $? = 0 ]]; then
             echo 'eula=true' >${serverPath}/eula.txt
         fi
@@ -260,14 +268,14 @@ function chromedriverDownload(){
 function instWebdriver(){
     detectPackageManager
     if [ ${packageManager} = 'pacman' ]; then
-        runCommand sudo pacman -Sy
-        runCommand sudo pacman -S python-pip chromium --noconfirm --needed
+        runCommand elevatePermission pacman -Sy
+        runCommand elevatePermission pacman -S python-pip chromium --noconfirm --needed
     elif [ ${packageManager} = 'apt' ]; then
-        runCommand sudo apt update
-        runCommand sudo apt install python3-pip chromium -y
+        runCommand elevatePermission apt update
+        runCommand elevatePermission apt install python3-pip chromium -y
     elif [ ${packageManager} = 'dnf' ]; then
-        runCommand sudo dnf update
-        runCommand sudo dnf install python3-pip chromium -y
+        runCommand elevatePermission dnf update
+        runCommand elevatePermission dnf install python3-pip chromium -y
     fi
     runCommand pip show undetected-chromedriver
     if [[ $? = 1 ]]; then
@@ -285,10 +293,10 @@ function instWebdriver(){
 
 function instResource(){
     echo '[Info] Installing resources'
-    runCommand sudo rm -rf /opt/mcctl
-    runCommand sudo mkdir -p /opt/mcctl
-    runCommand sudo mv resources /opt/mcctl/
-    runCommand sudo rm -f /opt/mcctl/resources/demo.png
+    runCommand elevatePermission rm -rf /opt/mcctl
+    runCommand elevatePermission mkdir -p /opt/mcctl
+    runCommand elevatePermission mv resources /opt/mcctl/
+    runCommand elevatePermission rm -f /opt/mcctl/resources/demo.png
     echo '[Info] Installed resources to /opt/mcctl'
 }
 
@@ -432,10 +440,10 @@ function printCopyright(){
 function uninstallService(){
     checkServiceFileInstalled
     if [ ${service} = enabled ]; then
-        runCommand sudo systemctl disable --now mcctl.service
-        runCommand sudo rm -rf /etc/systemd/system/mcctl.service
+        runCommand elevatePermission systemctl disable --now mcctl.service
+        runCommand elevatePermission rm -rf /etc/systemd/system/mcctl.service
     elif [ ${service} = disabled ]; then
-        runCommand sudo rm -rf /etc/systemd/system/mcctl.service
+        runCommand elevatePermission rm -rf /etc/systemd/system/mcctl.service
     else
         echo "[Warn] mcctl.service doesn't exist"
     fi
@@ -482,11 +490,11 @@ function installScript-dev(){
     pathPrevious=`pwd`
     cd mcctl
     instResource
-    runCommand sudo mv mcctl /usr/bin
+    runCommand elevatePermission mv mcctl /usr/bin
     if [ ! $? = 0 ]; then
         exitScript 12
     fi
-    runCommand sudo chmod +x /usr/bin/mcctl
+    runCommand elevatePermission chmod +x /usr/bin/mcctl
     if [ ! $? = 0 ]; then
         exitScript 12
     fi
@@ -497,8 +505,8 @@ function installScript-dev(){
 
 function uninstallScript(){
     echo '[Info] Uninstalling mcctl from your system'
-    runCommand sudo rm -rf /usr/bin/mcctl
-    runCommand sudo rm -rf /opt/mcctl
+    runCommand elevatePermission rm -rf /usr/bin/mcctl
+    runCommand elevatePermission rm -rf /opt/mcctl
     echo '[Info] Uninstalled mcctl from your system'
 }
 
@@ -535,8 +543,8 @@ WantedBy=multi-user.target
     echo "[Info] Type 'Confirm' to confirm or any other key to cancel"
     read checkConfirm
     if [ ${checkConfirm} = 'Confirm' ]; then
-        runCommand sudo mv mcctl.service /etc/systemd/system/
-        runCommand sudo systemctl enable mcctl.service
+        runCommand elevatePermission mv mcctl.service /etc/systemd/system/
+        runCommand elevatePermission systemctl enable mcctl.service
     else
         echo '[Info] Cancelled'
     fi
@@ -546,9 +554,9 @@ function installRequirements(){
     echo '[Info] Installing requirements'
     detectPackageManager
     if [ ${packageManager} = 'pacman' ]; then
-        runCommand sudo pacman -S jre-openjdk git screen wget xdg-utils chromium --noconfirm --needed
+        runCommand elevatePermission pacman -S jre-openjdk git screen wget xdg-utils polkit chromium --noconfirm --needed
     elif [ ${packageManager} = 'apt' ]; then
-        runCommand sudo apt install -y default-jdk screen wget openjdk-8-jre-headless
+        runCommand elevatePermission apt install -y default-jdk screen wget openjdk-8-jre-headless
     elif [ ${packageManager} = 'dnf' ]; then
         echo "[Critical] dnf not supported"
         exitScript 9
@@ -665,7 +673,7 @@ function createFolder(){
         runCommand mkdir -p ${serverPath}
         runCommand mkdir -p ${serverPath}/plugins
         if [ $? = 1 ]; then
-        echo '[Info] mkdir returned error code 1, retrying with sudo'
+        echo '[Info] mkdir returned error code 1, retrying with root permission'
             if [ $@ =~ 'unattended' ]; then
                 echo '[Warn] unattended flag detected.'
                 exitScript 2
@@ -673,7 +681,7 @@ function createFolder(){
                 if [ `whoami` = root ]; then
                     exitScript 2
                 else
-                    runCommand sudo mkdir -p ${serverPath}/plugins
+                    runCommand elevatePermission mkdir -p ${serverPath}/plugins
                 fi
             fi
         fi
@@ -687,7 +695,7 @@ function createFolder(){
         if [ $? = 1 ]; then
             echo '[Info] mkdir failed, trying with root'
             if [[ $@ =~ 'unattended' ]]; then
-                runCommand sudo mkdir -p ${serverPath}/plugins
+                runCommand elevatePermission mkdir -p ${serverPath}/plugins
             else
                 echo '[Warn] unattended flag detected'
                 exitScript 2
@@ -725,33 +733,18 @@ function buildSpigot(){
 }
 
 function detectPackageManager(){
-    echo "[Info] Detecting package manager..."
-    if [[ $@ =~ 'nosudo' ]]; then
-        if [[ $(apt install ) ]]; then
-            echo '[Info] Detected apt'
-            packageManager='apt'
-        elif [[ $(pacman -h ) ]]; then
-            echo '[Info] Detected pacman'
-            packageManager='pacman'
-        elif [[ $(dnf install ) ]]; then
-            echo '[Info] Detected dnf'
-            packageManager='dnf'
-        else
-            packageManager='unknown'
-        fi
+    echo "[Info] Detecting package manager"
+    if [[ $(apt install ) ]]; then
+        echo '[Info] Detected apt'
+        packageManager='apt'
+    elif [[ $(pacman -h ) ]]; then
+        echo '[Info] Detected pacman'
+        packageManager='pacman'
+    elif [[ $(dnf install ) ]]; then
+        echo '[Info] Detected dnf'
+        packageManager='dnf'
     else
-        if [[ $(sudo apt install ) ]]; then
-            echo '[Info] Detected apt'
-            packageManager='apt'
-        elif [[ $(sudo pacman -h ) ]]; then
-            echo '[Info] Detected pacman'
-            packageManager='pacman'
-        elif [[ $(sudo dnf install ) ]]; then
-            echo '[Info] Detected dnf'
-            packageManager='dnf'
-        else
-            packageManager='unknown'
-        fi
+        packageManager='unknown'
     fi
 }
 
@@ -871,13 +864,13 @@ function pluginUpdate(){
 function systemUpdate(){
     if [ ${packageManager} = apt ]; then
         echo "[Info] Updating using apt..."
-        runCommand sudo apt -y full-upgrade
+        runCommand elevatePermission apt -y full-upgrade
     elif [ ${packageManager} = dnf ]; then
         echo "[Info] Updating using dnf..."
-        runCommand sudo dnf -y update
+        runCommand elevatePermission dnf -y update
     elif [ ${packageManager} = pacman ]; then
         echo "[Info] Updating using pacman..."
-        runCommand sudo pacman --noconfirm -Syyu
+        runCommand elevatePermission pacman --noconfirm -Syyu
     else
         unset packageManager
         exitScript 5
@@ -1165,24 +1158,10 @@ function rescueMode(){
 function installScript(){
      echo '[Info] Getting the letest stable version'
      runCommand rm -rf mcctl
-#     runCommand git clone https://github.com/Kimiblock/mcctl.git
-#     if [[ $? = 0 ]]; then
-#         echo '[Info] Downloaded version info'
-#     else
-#         exitScript 11
-#     fi
-#     pathPrevious=`pwd`
-#     cd mcctl
-#     runCommand git pull
-#     target_mcctl_version=`git describe --tags --abbrev=0`
     runCommand wget https://github.com/Kimiblock/mcctl/releases/latest/download/mcctl
-#     runCommand curl -O "https://github.com/Kimiblock/mcctl/releases/download/${target_mcctl_version}/mcctl"
-    echo '[Info] Installing resources, asking sudo premission'
-#     runCommand sudo mkdir -p /opt/mcctl
-#     runCommand sudo mv resources /opt/mcctl/
-    runCommand sudo mv mcctl /usr/bin/
-    runCommand sudo chmod +x /usr/bin/mcctl
-#     cd ${pathPrevious}
+    echo '[Info] Installing resources, asking root premission'
+    runCommand elevatePermission mv mcctl /usr/bin/
+    runCommand elevatePermission chmod +x /usr/bin/mcctl
     rm -rf mcctl
     echo '[Info] Script installed and updated'
 }
