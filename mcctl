@@ -114,17 +114,19 @@ function elevatePermission(){
         $@
     else
         checkDesktop
-        if [[ $? = 0 ]]; then
+        if [ $? = 0 ]; then
             pkexec $@
-        else
+        elif [ $? = 1 ]; then
             sudo $@
+        else
+            exit $?
         fi
     fi
 }
 
 #Check if any graphical sessions enabled, return 0 when desktop environment detected
 function checkDesktop(){
-    if [ -f /usr/share/xsessions/*.desktop ]; then
+    if [ `ls /usr/share/xsessions/*.desktop 1>/dev/null 2>/dev/null && echo $?` = 0 ]; then
         return 0
     else
         return 1
@@ -1202,7 +1204,7 @@ fi
 if [[ $1 = '--restore-snapshot' ]]; then
     restoreSnapshot $2
 fi
-if [[ $1 = '--remove-snapshot' ]]; then
+if [[ $1 = '--delete-snapshot' ]]; then
     removeSnapshots $2
 fi
 echo "[Info] Reading settings"

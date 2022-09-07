@@ -102,7 +102,7 @@ You can also specify where to store your snapshots by $snapshotPath
 Remove snapshots older than $2 day(s)
 
 ```bash
-mcctl --remove-snapshot $2
+mcctl --delete-snapshot $2
 ```
 
 ### Restore a snapshot
