@@ -51,7 +51,7 @@ git clone https://github.com/Kimiblock/mcctl.git && cd mcctl && ./mcctl --instal
 ## Uninstall mcctl command
 
 ```bash
-mcctl --remove
+mcctl --uninstall
 ```
 
 ## Update your Minecraft server and plugins

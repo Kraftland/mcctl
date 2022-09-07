@@ -1217,7 +1217,7 @@ if [[ $@ =~ 'newserver' ]]; then
     createFolder $@
     acceptEula
 fi
-if [[ ${flagsInput} =~ 'remove' ]]; then
+if [[ $1 = 'uninstall' ]]; then
     uninstallScript
     uninstallService
 fi
@@ -1228,7 +1228,7 @@ fi
 if [[ ${flagsInput} =~ "instreq" ]]; then
     installRequirements ${flagsInput}
 fi
-if [[ ${flagsInput} =~ 'update' ]]; then
+if [[ $1 = 'update' ]]; then
     if [[ ${flagsInput} =~ autodetect ]]; then
     detectInstalledFiles
         if [[ ${flagsInput} =~ "unattended" ]]; then
