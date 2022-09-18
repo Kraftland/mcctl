@@ -80,7 +80,7 @@ function getUrl(){
 function askConfirm(){
     unset _askConfirm
     read -p 'Confirm your operation: [y/n]: ' _askConfirm
-    if [ ${_askConfirm} = y ]; then
+    if [[ ${_askConfirm} = y ]]; then
         unset _askConfirm
         echo '[Info] Operation confirmed'
         return 0
@@ -156,6 +156,7 @@ function makeSnapshot(){
     return 0
 }
 
+
 #Remove older snapshots, snapshots older than $1 days will be removed
 function removeSnapshots(){
     if [ $1 -lt 0 ]; then
@@ -169,21 +170,37 @@ function removeSnapshots(){
     elif [ $1 -gt 1 ]; then
         echo "[Info] Attempting to delete snapshots older then $1 days"
     fi
+    unset confirm
     askConfirm
+#     if [[ $? = 0 ]]; then
+#         echo '[Info] Removing snapshots'
+#         unset dateGap
+#         dateLimit=$1
+#         dateNow=`date "+%Y%m%d"`
+#         dateStart=`date -d "${dateLimit} days ago" +%Y%m%d`
+#         dateToProcess=${dateStart}
+#         dateGap=`expr ${dateNow} - ${dateToProcess}`
+#         while [ ${dateGap} -gt 0 ]; do
+#             runCommand rm ${snapshotPath}/${dateToProcess}.tar.xz
+#             dateGap=`expr ${dateGap} - 1`
+#         done
+#     fi
+#     unset confirm
     if [[ $? = 0 ]]; then
-        echo '[Info] Removing snapshots'
         unset dateGap
         dateLimit=$1
         dateNow=`date "+%Y%m%d"`
-        dateStart=`date -d "${dateLimit} days ago" +%Y%m%d`
+        dateStart=`ls ${snapshotPath} | head -1 | cut -c -8`
         dateToProcess=${dateStart}
-        dateGap=`expr ${dateNow} - ${dateToProcess}`
-        while [ ${dateGap} -gt 0 ]; do
+#         dateGap=`expr ${dateNow} - ${dateToProcess}`
+        while [[ ${dateToProcess} -lt `date -d "${dateLimit} days ago" +%Y%m%d` ]]; do
+            echo "[Info] Removing snapshot ${dateToProcess}"
             runCommand rm ${snapshotPath}/${dateToProcess}.tar.xz
-            dateGap=`expr ${dateGap} - 1`
+            dateToProcess=`expr ${dateToProcess} + 1`
+#             count=`expr ${count} + 1`
         done
-    fi
 
+    fi
 }
 
 #Restore snapshots taken $1 days ago
@@ -1126,13 +1143,6 @@ function processFlags(){
         lockFile unlock
     fi
     lockFile check
-    #lockFile lock
-#    if [[ ${flagsInput} =~ 'save-conf' ]]; then
-#        saveConfig
-#    fi
-#    if [[ $@ =~ 'create-conf' ]]; then
-#        createConf
-#    fi
     if [[ $@ = 'currentdirectory' ]]; then
         serverPath=`pwd`
     fi
