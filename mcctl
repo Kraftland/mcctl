@@ -638,7 +638,7 @@ function exitScript(){
     else
         echo '[Critical] Exit code detected!'
         echo "Exit code: $@ "
-        echo '[Critical] You may follow the instructions to debug'
+#         echo '[Critical] You may follow the instructions to debug'
         if [[ $@ = 1 ]]; then
             sign='Unknown error'
             rescueMode
@@ -672,6 +672,8 @@ function exitScript(){
             sign="Exit code from minecraft detected"
         elif [[ $@ = 16 ]]; then
             sign='Wrong argument detected'
+        elif [[ $1 = 17 ]]; then
+            sign='SSMTP missing'
         elif [[ ! $@ ]]; then
             sign='Internal error'
             rescueMode
@@ -679,7 +681,7 @@ function exitScript(){
             sign="Undefined error code"
         fi
         echo "[Critical] ${sign}"
-        echo '[Critical] Exitting...'
+        echo '[Critical] Exitting script'
         unset ${sign}
         exit $@
     fi
@@ -726,6 +728,76 @@ function createFolder(){
     else
         echo '[Info] Directory already exists'
     fi
+}
+
+function outputLine(){
+    if [[ `cat -v ${serverPath}/logs/latest.log | grep -a "$1"` ]]; then
+        echo "<h2>$2</h2>"
+        cat -v ${serverPath}/logs/latest.log | grep -a "$1"
+    fi
+}
+
+function generateMail(){
+    pathPrevious=`pwd`
+    cd ${serverPath}/logs
+    echo '[Info] Printing logs'
+    outputLine 'SAC' 'SoaromaSAC Warnings⭐: '
+    outputLine 'joined' 'Player(s) joined: '
+    outputLine 'left' 'Player(s) left: '
+    echo '<h2>Chats (Powered by GriefPrevention)</h2>'
+    cat "${serverPath}/plugins/GriefPreventionData/Logs/`date '+%Y_%m_%d'`.log"
+    outputLine 'com.mojang.authlib.GameProfile' 'Player(s) failed to login'
+    outputLine 'a sign' 'Sign(s) placed'
+    outputLine 'issued server command:' 'Command(s) issued by players'
+    outputLine 'WARN' 'Internal warning(s)'
+    outputLine 'ERROR' 'Internal error(s)'
+    outputLine 'Got disconnected from the skin uploader' 'Geyser skin server disconnected'
+    outputLine 'Named entity' 'Entity(s) being named: '
+    outputLine '/tell' 'Private Chat(s)'
+    outputLine 'banned' 'Player(s) being banned: '
+    echo '<h1>Full log(s)</h1>'
+    cd ${serverPath}/logs/
+    gunzip *
+    cat ${serverPath}/logs/latest.log
+    if [[ -f ${serverPath}/logs/${date}* ]]; then
+        cd ${serverPath}/logs/
+        if [[ -f ${serverPath}/logs/*.gz ]]; then
+            gunzip ${serverPath}/logs/*.gz >/dev/null
+        fi
+        echo '<h1>Reboot log(s) found</h1>'
+        logNumber=1
+        logName="${date}-${logNumber}.log"
+        continue=true
+        while [[ ${continue} = true ]]; do
+            echo "<h2>Printing ${logName}: </h2>"
+            cat ${serverPath}/logs/${logName}
+            logNumber=`expr ${logNumber} + 1`
+            logName="${date}-${logNumber}.log"
+            if [ -f ${serverPath}/logs/${logName} ]; then
+                continue=true
+            else
+                continue=false
+            fi
+        done
+    else
+    echo '<h1>End of file</h1>'
+    fi
+    cd ${pathPrevious}
+}
+
+function sendMail(){
+    pathPrevious=`pwd`
+    addressToSend=$1
+#     cd ${serverPath}/logs/
+    cd ~
+    echo '''Content-Type: text/html;charset=UTF-8
+Subject: mcctl server report
+From: mcctl
+''' >mailGenerated
+    generateMail >>mailGenerated
+    ssmtp ${addressToSend} <mailGenerated
+    rm mailGenerated
+    cd ${pathPrevious}
 }
 
 function buildMojang(){
@@ -1101,12 +1173,25 @@ function runCommand(){
     fi
 }
 
+function checkSsmtp(){
+    ssmtp >/dev/null
+    if [[ $? = 127 ]]; then
+        exitScript 17
+    else
+        echo '[Info] SSMTP installed'
+    fi
+}
+
 function processFlags(){
     unset _quiet
     unset _verbose
     flagsInput=$@
-    if [[ ${flagsInput} =~ no-environment-check ]]; then
+    if [[ ${flagsInput} =~ 'no-environment-check' ]]; then
         noEnvironment
+    fi
+    if [[ ${flagsInput} =~ '--mail-report' ]]; then
+        checkSsmtp
+        sendMail $2
     fi
     if [ ! ${snapshotPath} ]; then
         snapshotPath=~/mcctl-snapshot
@@ -1118,17 +1203,6 @@ function processFlags(){
     if [[ ${flagsInput} =~ 'multilogin' ]]; then
         export _multilogin=1
     fi
-#     if [[ ! $@ ]]; then
-#         echo '[Info] No options detected! Trying to read saved settings'
-#         unset flagsInput
-#         readConf flags
-#     fi
-#    if [ ! ${serverPath} ]; then
-#        readConf env
-#    fi
-#    if [ ! ${version} ]; then
-#        readConf env
-#    fi
     if [[ ${flagsInput} =~ '--verbose' ]]; then
         echo '[Info] Verbose mode is on'
         export _verbose=1

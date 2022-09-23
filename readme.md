@@ -139,6 +139,16 @@ Note: Install `screen` if you add -d, you can go back to your server session by 
 
 Next time you use `mcctl`, just type `mcctl`. Script will automatically remember what you entered last time.
 
+## Automatically send report mails
+
+Tip: Install and setup `ssmtp` first.
+
+```bash
+mcctl --mail-report $2 #replace $2 with your mail address 
+```
+
+
+
 ## Install requirements (Currently beta, only pacman and apt recive full support)
 
 | Options   | Effects              |
