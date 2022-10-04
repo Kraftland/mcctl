@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version_mcctl=dev-22-9-17
+version_mcctl=dev-22-9-26
 
 function setVersion(){
     if [[ $1 = "multilogin" ]]; then
@@ -172,32 +172,16 @@ function removeSnapshots(){
     fi
     unset confirm
     askConfirm
-#     if [[ $? = 0 ]]; then
-#         echo '[Info] Removing snapshots'
-#         unset dateGap
-#         dateLimit=$1
-#         dateNow=`date "+%Y%m%d"`
-#         dateStart=`date -d "${dateLimit} days ago" +%Y%m%d`
-#         dateToProcess=${dateStart}
-#         dateGap=`expr ${dateNow} - ${dateToProcess}`
-#         while [ ${dateGap} -gt 0 ]; do
-#             runCommand rm ${snapshotPath}/${dateToProcess}.tar.xz
-#             dateGap=`expr ${dateGap} - 1`
-#         done
-#     fi
-#     unset confirm
     if [[ $? = 0 ]]; then
         unset dateGap
         dateLimit=$1
         dateNow=`date "+%Y%m%d"`
         dateStart=`ls ${snapshotPath} | head -1 | cut -c -8`
         dateToProcess=${dateStart}
-#         dateGap=`expr ${dateNow} - ${dateToProcess}`
         while [[ ${dateToProcess} -lt `date -d "${dateLimit} days ago" +%Y%m%d` ]]; do
             echo "[Info] Removing snapshot ${dateToProcess}"
             runCommand rm ${snapshotPath}/${dateToProcess}.tar.xz
             dateToProcess=`expr ${dateToProcess} + 1`
-#             count=`expr ${count} + 1`
         done
 
     fi
@@ -219,7 +203,6 @@ function restoreSnapshot(){
     dateToRestore=`date -d "$1 days ago" +%Y%m%d`
     snapshotToProcess=${dateToRestore}.tar.xz
     cachePath=~/mcctl-snapshot-restore-$RANDOM
-
     askConfirm
     if [[ $? = 0 ]]; then
         if [ `ps aux | grep 'java -jar'` ]; then
@@ -274,7 +257,7 @@ function chromedriverDownload(){
     echo '[Warn] If you connect server via ssh, install xorg-xserver and add -Y argument to your ssh command'
     echo '[Warn] This argument will enable X11 forwarding, make sure you enabled it in ssh config!'
     runCommand "python3 /opt/mcctl/resources/chromedriver.py ${url}"
-    if [ -f '~/下载/*.crdownload' ]; then #Detect Chinese environment since some idiot use Chinese as server's primary language
+    if [ -f '~/下载/*.crdownload' ]; then
         mv ~/下载/*.crdownload ~/${checkFile}
     else
         mv ~/Downloads/*.crdownload ~/${checkFile}
@@ -622,8 +605,6 @@ function cleanFile(){
     if [[ $@ =~ unattended ]]; then
         echo '[Info] Skipping config file in ~/.config'
     else
-#
-#         read -p '[Warn] Do you want to completely delete mcctl configs?[y/n]: ' confirm
         askConfirm
         if [ $? = 0 ]; then
             runCommand rm -rf ~/.config/mcctl
@@ -638,7 +619,6 @@ function exitScript(){
     else
         echo '[Critical] Exit code detected!'
         echo "Exit code: $@ "
-#         echo '[Critical] You may follow the instructions to debug'
         if [[ $@ = 1 ]]; then
             sign='Unknown error'
             rescueMode
@@ -788,7 +768,6 @@ function generateMail(){
 function sendMail(){
     pathPrevious=`pwd`
     addressToSend=$1
-#     cd ${serverPath}/logs/
     cd ~
     echo '''Content-Type: text/html;charset=UTF-8
 Subject: mcctl server report

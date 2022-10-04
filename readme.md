@@ -185,8 +185,8 @@ mcctl --unattended
 Edit `/etc/environment`, add those lines:
 
 ```/etc/environment
-version=Your version
-serverPath=Your path to server
+version=Target Minecraft version
+serverPath=Path to server directory
 ```
 
 Then reboot or re-login
@@ -229,9 +229,9 @@ Just add a `--newserver` option, script will automatically handle it.
 
 # Known bugs
 
-- Spigot's own build tools may occationally crash, `mcctl -clean` might fix it.
+- Spigot's own build tools may occationally crash, `mcctl --clean` might fix it.
 
-- Do not use `manjaro-zsh-config-git` or any other similar package or you might experience screen problems. If you have to use those zsh plugins, change your default shell to bash `chsh -s /bin/bash`
+- Do not use `zsh` or any other shell, change your default shell to bash `chsh -s /bin/bash` or run mcctl under bash (If your default shell isn't bash, some non-critical problem will occur) 
 
 - Can't download sac due to spigotmc.org's unique protection
 
