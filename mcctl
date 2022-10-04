@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version_mcctl=dev-22-9-26
+version_mcctl=dev-22-10-4
 
 function setVersion(){
     if [[ $1 = "multilogin" ]]; then
@@ -830,6 +830,20 @@ function checkConfig(){
     fi
 }
 
+function biogas(){
+    runCommand xdg-open 'https://zh.m.wikiquote.org/zh-hans/%E9%87%8E%E5%85%BD%E5%85%88%E8%BE%88'
+    echo '24歳、学生です. いいよ！こいよ！胸にかけて！胸に！'
+    echo 'やじゅう せんぱい'
+}
+
+function version(){
+    if [[ ${version_mcctl} =~ dev ]]; then
+        echo "[Info] Running mcctl git version ${version_mcctl}"
+    else
+        echo "[Info] Running mcctl stable version ${version_mcctl}"
+    fi
+}
+
 function clean(){
     echo "[Info] Cleaning"
     runCommand rm -rf *.jar
@@ -1267,6 +1281,13 @@ LC_ALL=C
 processFlags $@
 echo "[Info] Hello! `whoami` at `date`"
 printCopyright
+if [[ $1 = '--biogas' ]]; then
+    biogas
+    exit 0
+elif [[ $1 = '--version' ]]; then
+    version
+    exit 0
+fi
 checkBit
 if [[ ${flagsInput} =~ '--create-snapshot' ]]; then
     makeSnapshot
