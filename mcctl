@@ -840,19 +840,23 @@ function biogas(){
     echo '24歳、学生です. いいよ！こいよ！胸にかけて！胸に！'
     echo 'やじゅう せんぱい'
     runCommand xdg-open 'https://zh.moegirl.org.cn/%E9%87%8E%E5%85%BD%E5%85%88%E8%BE%88'
-    echo '''
-       　  　▃▆█▇▄▖
-　 　 　 ▟◤▖　　　◥█▎
-   　 ◢◤　 ▐　　　 　▐▉
-　 ▗◤　　　▂　▗▖　　▕█▎
-　◤　▗▅▖◥▄　▀◣　　█▊
-▐　▕▎◥▖◣◤　　　　◢██
-█◣　◥▅█▀　　　　▐██◤
-▐█▙▂　　     　◢██◤
-◥██◣　　　　◢▄◤
- 　　▀██▅▇▀
-
-'''
+    picNumber=3
+    picToOpen=1
+    picMaxium=`expr ${picNumber} + 1`
+    if [[ ${flagsInput} =~ crazy ]]; then
+        while true; do
+            while [ ${picToOpen} -lt ${picMaxium} ]; do
+                runCommand xdg-open "https://github.com/Kimiblock/mcctl/raw/master/Online-resource/biogas/${picToOpen}.jpg"
+            picToOpen=`expr ${picToOpen} + 1`
+            done
+        sleep 1s
+        done
+    else
+        while [ ${picToOpen} -lt ${picMaxium} ]; do
+            runCommand xdg-open "https://github.com/Kimiblock/mcctl/raw/master/Online-resource/biogas/${picToOpen}.jpg"
+            picToOpen=`expr ${picToOpen} + 1`
+        done
+    fi
 }
 
 function version(){
