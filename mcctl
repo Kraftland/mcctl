@@ -856,8 +856,8 @@ function biogas(){
     runCommand xdg-open 'https://zh.moegirl.org.cn/%E9%87%8E%E5%85%BD%E5%85%88%E8%BE%88'
     picNumber=3
     picToOpen=1
-#     picMaxium=`expr ${picNumber} + 1`
-    picMaxium=1919810
+    picMaxium=`expr ${picNumber} + 1`
+#     picMaxium=1919810
     if [[ ${flagsInput} =~ crazy ]]; then
         while true; do
             while [ ${picToOpen} -lt ${picMaxium} ]; do
