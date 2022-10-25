@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version_mcctl=dev-22-10-14
+version_mcctl=dev-22-10-25
 
 function setVersion(){
     if [[ $1 = "multilogin" ]]; then
@@ -184,8 +184,12 @@ function removeSnapshots(){
     elif [ $1 -gt 1 ]; then
         echo "[Info] Attempting to delete snapshots older then $1 days"
     fi
-    unset confirm
-    askConfirm
+    if [[ ${flagsInput} =~ 'unattended' ]]; then
+        echo '[Warn] Proceeding'
+    else
+        unset confirm
+        askConfirm
+    fi
     if [[ $? = 0 ]]; then
         unset dateGap
         dateLimit=$1
@@ -636,7 +640,7 @@ function exitScript(){
     if [ $@ = 0 ]; then
     exit $@
     else
-        echo '[Critical] Exit code detected!'
+#         echo '[Critical] Exit code detected!'
         echo "Exit code: $@ "
         if [[ $@ = 1 ]]; then
             sign='Unknown error'
@@ -875,6 +879,7 @@ function biogas(){
 }
 
 function version(){
+    printCopyright
     if [[ ${version_mcctl} =~ dev ]]; then
         echo "[Info] Running mcctl git version ${version_mcctl}"
     else
@@ -1025,11 +1030,12 @@ function buildPaper(){
 }
 
 function checkBit(){
-    runCommand getconf LONG_BIT
-    return $?
-    if [ $? = 64 ]; then
-        echo "[Info] Running on 64-bit system."
-    elif [ $? = 32 ]; then
+#     runCommand getconf LONG_BIT
+#     return $?
+    if [ `getconf LONG_BIT` = 64 ]; then
+#         echo "[Info] Running on 64-bit system."
+        return 0
+    elif [ `getconf LONG_BIT` = 32 ]; then
         if [[ $@ =~ "unsafe" ]]; then
             echo "[Warn] Running on 32-bit system may encounter unexpected problems."
         else
@@ -1214,6 +1220,9 @@ function checkSsmtp(){
 }
 
 function processFlags(){
+    if [[ ! $@ ]]; then
+        exit 0
+    fi
     unset _quiet
     unset _verbose
     flagsInput=$@
@@ -1318,7 +1327,7 @@ echo "Loading mcctl version ${version_mcctl}"
 LC_ALL=C
 processFlags $@
 echo "[Info] Hello! `whoami` at `date`"
-printCopyright
+# printCopyright
 if [[ $1 = '--biogas' ]]; then
     biogas
     exitScript
@@ -1338,7 +1347,7 @@ if [[ $1 = '--delete-snapshot' ]]; then
     removeSnapshots $2
     exitScript
 fi
-echo "[Info] Reading settings"
+# echo "[Info] Reading settings"
 clean
 checkConfig
 if [[ ${flagsInput} =~ 'update-self' ]]; then
