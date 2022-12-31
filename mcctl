@@ -71,6 +71,12 @@ function getUrl(){
         export url="https://github.com/Fireflyest/GlobalMarket/releases/download/${craftgui_version}/CraftGUI-`echo ${craftgui_version} | cut -c 2-`.jar"
     elif [[ $1 = 'griefprevention' ]]; then
         export url="https://github.com/TechFortress/GriefPrevention/releases/latest/download/GriefPrevention.jar"
+    elif [[ $1 = 'deluxemenu' ]]; then
+        export url='https://ci.extendedclip.com/job/DeluxeMenus/lastStableBuild/artifact/build/libs/DeluxeMenus-1.13.7-DEV-152.jar'
+    elif [[ $1 = 'luckperms' ]]; then
+        export url='https://download.luckperms.net/1464/bukkit/loader/LuckPerms-Bukkit-5.4.56.jar'
+    elif [[ $1 = 'freedomchat' ]]; then
+        export url='https://cdn.modrinth.com/data/MubyTbnA/versions/qGaisS0d/FreedomChat-1.3.1.jar'
     else
         echo '[Critical] Url not found!'
     fi
@@ -135,7 +141,7 @@ function checkDesktop(){
 
 function deleteXzSnapshot(){
     if [[ `ls ${snapshotPath}/*.tar.xz 1>/dev/null 2>/dev/null && echo $?` = 0 ]]; then
-        echo "[Warn] Old xz formatted snapshots has been deceperated, those snapshot file(s) will be moved to ${snapshotPath}.old"
+        echo "[Warn] Old xz formatted snapshots have been deceperated, those snapshot file(s) will be moved to ${snapshotPath}.old"
         runCommand mkdir -p ${snapshotPath}.old
         runCommand mv ${snapshotPath}/*.xz ${snapshotPath}.old/
     fi
@@ -927,7 +933,8 @@ function integrityProtect(){
     else
         echo "[Info] Verifing ${checkFile}"
         runCommand mv ${checkFile} ${checkFile}.check
-        runCommand wget ${url}
+#         runCommand wget ${url}
+        curl ${url} -O ${checkFile}
         if [ -f paper-*.jar ]; then
             runCommand mv paper-*.jar Paper-latest.jar
         elif [ -f server*.jar ]; then
@@ -958,8 +965,9 @@ function redownload(){
     clean
     if [ ${isPlugin} = false ]; then
         checkFile=Paper-latest.jar
-        runCommand wget $url
-        runCommand mv paper-*.jar Paper-latest.jar
+#         runCommand wget $url
+#         runCommand mv paper-*.jar Paper-latest.jar
+        curl ${url} -o ${checkFile}
         integrityProtect
     else
         runCommand wget $url
@@ -979,11 +987,38 @@ function pluginUpdate(){
         setVersion multilogin
         pluginName=$@
         geturl multilogin
+    elif [ $@ = freedomchat ]; then
+        geturl freedomchat
+        pluginName='FreedomChat'
+    elif [ $@ = deluxemenu ]; then
+        getUrl deluxemenu
+        pluginName='DeluxeMenus'
+    elif [ $@ = luckperms ]; then
+        getUrl luckperms
+        pluginName='LuckPerms'
+    elif [ $@ = viaversion ]; then
+        setVersion viabackwards
+        getUrl viaversion
+        pluginName='ViaVersion'
+    elif [ $@ = viabackwards ]; then
+        setVersion viabackwards
+        getUrl viabackwards
+        pluginName='ViaBackwards'
+    elif [ $@ = protocollib ]; then
+        getUrl protocollib
+        pluginName='ProtocolLib'
     else
         echo "[Warn] Sorry, but we don't have your plugin's download url. Please wait for support~"
     fi
     echo "[Info] Downloading ${pluginName}"
-    runCommand wget $url
+    _curl=1 #Force curl instead wget
+    if [ ${_curl} = 1 ]; then
+        echo "[info] Using curl instead of wget..."
+        curl -O ${url} ${checkFile}
+        unset _curl
+    else
+        runCommand wget ${url}
+    fi
     isPlugin=true
 }
 
@@ -1088,6 +1123,36 @@ function updateMain(){
         clean
     fi
 
+    if [[ ${flagsInput} =~ 'freedomchat' ]]; then
+        isPlugin=true
+        checkFile=FreedomChat.jar
+        pluginUpdate freedomchat
+        integrityProtect
+        versionCompare
+        update ${checkFile}
+        clean
+    fi
+
+    if [[ ${flagsInput} =~ 'deluxemenu' ]]; then
+        isPlugin=true
+        checkFile=DeluxeMenus.jar
+        pluginUpdate deluxemenu
+        integrityProtect
+        versionCompare
+        update ${checkFile}
+        clean
+    fi
+
+    if [[ ${flagsInput} =~ 'luckperms' ]]; then
+        isPlugin=true
+        checkFile=LuckPerms.jar
+        pluginUpdate luckperms
+        integrityProtect
+        versionCompare
+        update ${checkFile}
+        clean
+    fi
+
     if [[ ${_multilogin} = 1 ]]; then
         pluginUpdate multilogon
         mv MultiLogin-Bukkit-*.jar MultiLogin.jar
@@ -1105,28 +1170,24 @@ function updateMain(){
     fi
 
     if [[ ${flagsInput} =~ 'viabackwards' ]]; then
-        setVersion viabackwards
-        getUrl viabackwards
-        runCommand mv ViaBackwards*.jar ViaBackwards.jar
         checkFile=ViaBackwards.jar
+        pluginUpdate viabackwards
         integrityProtect
         versionCompare
         update ${checkFile}
     fi
 
     if [[ ${flagsInput} =~ 'viaversion' ]]; then
-        setVersion viabackwards
-        getUrl viaversion
-        runCommand mv ViaVersion*.jar ViaVersion.jar
         checkFile=ViaVersion.jar
+        pluginUpdate viaversion
         integrityProtect
         versionCompare
         update ${checkFile}
     fi
 
     if [[ ${flagsInput} =~ 'protocollib' ]]; then
-        getUrl protocollib
         checkFile=ProtocolLib.jar
+        pluginUpdate protocollib
         integrityProtect
         versionCompare
         update ${checkFile}
