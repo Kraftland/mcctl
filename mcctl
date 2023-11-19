@@ -160,7 +160,7 @@ function makeSnapshot(){
 	fi
 	echo '[Info] Preparing to make snapshots'
 	deleteXzSnapshot
-	if [[ ${_mcctlEnableBtrfs} ]]; then
+	if [[ ${_mcctlEnableBtrfs} = 1 ]]; then
 		createBtrfsSnapshot
 	else
 		echo '[Info] Copying files'
@@ -176,6 +176,7 @@ function makeSnapshot(){
 	return 0
 }
 
+# Create Btrfs snapshots
 function createBtrfsSnapshot(){
 	runCommand rsync -aAXHv --delete "${serverPath}"/* "${snapshotPath}/current"
 	runCommand btrfs subvolume snapshot -r "${snapshotPath}/current" \
@@ -184,6 +185,9 @@ function createBtrfsSnapshot(){
 	return 0
 }
 
+function deleteBtrfsSnapshot(){
+	runCommand btrfs subvolume delete "${snapshotPath}/${dateToProcess}"
+}
 
 #Remove older snapshots, snapshots older than $1 days will be removed
 function removeSnapshots(){
@@ -216,7 +220,11 @@ function removeSnapshots(){
 		dateToProcess=${dateStart}
 		while [[ ${dateToProcess} -lt `date -d "${dateLimit} days ago" +%Y%m%d` ]]; do
 			echo "[Info] Removing snapshot ${dateToProcess}"
-			runCommand rm ${snapshotPath}/${dateToProcess}.tar.zst
+			if [[ ${_mcctlEnableBtrfs} = 1 ]]; then
+				deleteBtrfsSnapshot
+			else
+				runCommand rm ${snapshotPath}/${dateToProcess}.tar.zst
+			fi
 			dateToProcess=`expr ${dateToProcess} + 1`
 		done
 
