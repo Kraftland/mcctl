@@ -160,15 +160,27 @@ function makeSnapshot(){
 	fi
 	echo '[Info] Preparing to make snapshots'
 	deleteXzSnapshot
-	echo '[Info] Copying files'
-	runCommand cp -r ${serverPath}/* ${snapshotPath}/${snapshotToSave}
-	echo '[Info] Compressing files, this may take some time'
-	pathPrevious=`pwd`
-	cd ${snapshotPath}/${snapshotToSave}/
-	runCommand tar --zstd -cf ${snapshotPath}/${snapshotToSave}.tar.zst *
-	cd ${pathPrevious}
-	rm -rf ${snapshotPath}/${snapshotToSave}
-	echo "[Info] Snapshot saved with Z-Standard compression"
+	if [[ ${_mcctlEnableBtrfs} ]]; then
+		createBtrfsSnapshot
+	else
+		echo '[Info] Copying files'
+		runCommand cp -r ${serverPath}/* ${snapshotPath}/${snapshotToSave}
+		echo '[Info] Compressing files, this may take some time'
+		pathPrevious=`pwd`
+		cd ${snapshotPath}/${snapshotToSave}/
+		runCommand tar --zstd -cf ${snapshotPath}/${snapshotToSave}.tar.zst *
+		cd ${pathPrevious}
+		rm -rf ${snapshotPath}/${snapshotToSave}
+		echo "[Info] Snapshot saved with Z-Standard compression"
+	fi
+	return 0
+}
+
+function createBtrfsSnapshot(){
+	runCommand rsync -aAXHv --delete "${serverPath}"/* "${snapshotPath}/current"
+	runCommand btrfs subvolume snapshot -r "${snapshotPath}/current" \
+	"${snapshotPath}/${snapshotToSave}"
+	echo "[Info] Btrfs snapshot created @ ${snapshotPath}/${snapshotToSave}"
 	return 0
 }
 
