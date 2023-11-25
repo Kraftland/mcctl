@@ -178,11 +178,25 @@ function makeSnapshot(){
 
 # Create Btrfs snapshots
 function createBtrfsSnapshot(){
+	createSubvolIfNotExist "${snapshotPath}/current"
 	runCommand rsync -aAXHv --delete "${serverPath}"/* "${snapshotPath}/current"
 	runCommand btrfs subvolume snapshot -r "${snapshotPath}/current" \
 	"${snapshotPath}/${snapshotToSave}"
 	echo "[Info] Btrfs snapshot created @ ${snapshotPath}/${snapshotToSave}"
 	return 0
+}
+
+# Check if a path is a Btrfs subvolume. If not, create it. Takes $1 as input.
+function createSubvolIfNotExist(){
+	if [[ $(whoami) = root ]]; then
+		subVols=$(runCommand btrfs subvolume list "$1")
+		if [[ "${subVols}" =~ "$1" ]]; then
+			echo "[Info] Subvolume do exist"
+		else
+			echo "[Info] Subvolume doesn't exist, creating..."
+			runCommand btrfs subvolume create "$1"
+		fi
+	fi
 }
 
 function deleteBtrfsSnapshot(){
